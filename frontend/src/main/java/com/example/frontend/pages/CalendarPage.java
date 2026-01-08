@@ -1,0 +1,555 @@
+package com.example.frontend.pages;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import com.example.frontend.model.Category;
+import com.example.frontend.model.HolidayData; // Import HolidayData
+import com.example.frontend.service.EventCsvService;
+import com.example.frontend.model.AppUser;
+import com.example.frontend.model.CalendarEvent;
+import com.example.frontend.model.Event;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
+
+public class CalendarPage {
+
+    private final Consumer<String> navigate;
+    private final EventCsvService eventService;
+    private final AppUser currentUser;
+
+    private YearMonth currentYearMonth;
+    private LocalDate selectedDate; // Track selected date
+    private List<CalendarEvent> events;
+    private Set<String> activeFilters = new HashSet<>();
+
+    private Label monthYearLabel;
+    private GridPane calendarGrid;
+    private TextField searchField;
+
+    // Side Panel Components
+    private Label sideCurrentDateNum;
+    private Label sideCurrentMonth;
+    private Label sideCurrentYear;
+    private Rectangle sideColorBox; // Promoted to field for referencing
+    private Button catBtn; // Promoted to field
+    private Button createBtn; // Promoted to field
+
+    // Side Panel Components
+
+    public CalendarPage(Consumer<String> navigate, EventCsvService eventService, AppUser currentUser) {
+        this.navigate = navigate;
+        this.eventService = eventService;
+        this.currentUser = currentUser;
+
+        this.currentYearMonth = YearMonth.now();
+        this.selectedDate = LocalDate.now(); // Default select today
+        this.events = new ArrayList<>();
+
+        // Initialize active filters with all categories
+        for (Category c : Category.values()) {
+            activeFilters.add(c.getId());
+        }
+
+        loadEventsFromBackend();
+    }
+
+    public CalendarPage() {
+        this(null, new EventCsvService(), null);
+    }
+
+    private void loadEventsFromBackend() {
+        this.events.clear();
+
+        // 1. Load Public Holidays (Always visible)
+        List<Event> holidays = HolidayData.getHolidays2026();
+        for (Event h : holidays) {
+            CalendarEvent viewEvent = new CalendarEvent(
+                    String.valueOf(h.getId()), // -1
+                    h.getTitle(),
+                    h.getStartDateTime(),
+                    h.getEndDateTime(),
+                    "#FF5722", // Orange for Holidays
+                    "HOLIDAY");
+            this.events.add(viewEvent);
+        }
+
+        if (currentUser == null)
+            return;
+
+        // 2. Load User Events
+        List<Event> dbEvents = eventService.loadEvents();
+        // DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        for (Event dbEvent : dbEvents) {
+            if (dbEvent.getUserId() != currentUser.getId())
+                continue;
+            try {
+                LocalDateTime start = dbEvent.getStartDateTime();
+                LocalDateTime end = dbEvent.getEndDateTime();
+                CalendarEvent viewEvent = new CalendarEvent(
+                        String.valueOf(dbEvent.getId()),
+                        dbEvent.getTitle(),
+                        start,
+                        end,
+                        ResolveCategoryColor(dbEvent.getCategory()),
+                        dbEvent.getCategory().toUpperCase());
+                this.events.add(viewEvent);
+            } catch (Exception e) {
+                System.out.println("Error parsing event");
+            }
+        }
+    }
+
+    // Helper to map category name to color code (since we might be using IDs)
+    private String ResolveCategoryColor(String categoryId) {
+        if (categoryId == null)
+            return "#4CAF50";
+        String cleanId = categoryId.trim();
+        for (Category c : Category.values()) {
+            if (c.getId().equalsIgnoreCase(cleanId))
+                return c.getColorHex();
+        }
+        return "#4CAF50"; // Default green
+    }
+
+    public Node getView() {
+        // Main Container (Green Background)
+        VBox mainContainer = new VBox(20);
+        mainContainer.getStyleClass().add("main-container");
+
+        try {
+            mainContainer.getStylesheets()
+                    .add(getClass().getResource("/frontend/CSS_SubPage/CalendarPage.css").toExternalForm());
+        } catch (Exception e) {
+        }
+
+        // --- NavBar ---
+        com.example.frontend.components.NavBar navBar = new com.example.frontend.components.NavBar(navigate);
+
+        // --- 1. Top Header Bar ---
+        HBox headerBar = createHeaderBar();
+
+        // Join navbar and header? or just stack them?
+        // User said "Top-Left", so putting it at the very top.
+        // mainContainer is VBox, so just add it first.
+        mainContainer.getChildren().add(navBar);
+
+        // --- 2. Content Area (Sidebar + Calendar) ---
+        HBox contentArea = new HBox(30);
+        contentArea.setAlignment(Pos.TOP_CENTER);
+
+        // Left Sidebar (Card) - Pass mainContainer to control background
+        VBox leftSidebar = createLeftSidebar(mainContainer);
+
+        // Right Calendar Area (Card)
+        VBox calendarCard = new VBox();
+        calendarCard.getStyleClass().add("calendar-card");
+        HBox.setHgrow(calendarCard, Priority.ALWAYS);
+
+        // Calendar Grid
+        calendarGrid = new GridPane();
+        calendarGrid.getStyleClass().add("calendar-grid");
+        calendarGrid.setAlignment(Pos.CENTER);
+
+        // Add scroll pane for calendar grid if needed, or just add directly
+        calendarCard.getChildren().add(calendarGrid);
+
+        contentArea.getChildren().addAll(leftSidebar, calendarCard);
+
+        mainContainer.getChildren().addAll(headerBar, contentArea);
+
+        updateCalendar();
+
+        return mainContainer;
+    }
+
+    private HBox createHeaderBar() {
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(10, 0, 10, 0));
+
+        // Prev Button
+        Button prevBtn = new Button("< Prev");
+        prevBtn.getStyleClass().addAll("action-btn", "green-btn");
+        prevBtn.setOnAction(e -> {
+            currentYearMonth = currentYearMonth.minusMonths(1);
+            updateCalendar();
+        });
+
+        // Month Label
+        monthYearLabel = new Label();
+        monthYearLabel.getStyleClass().add("header-month-label");
+
+        // Next Button
+        Button nextBtn = new Button("Next >");
+        nextBtn.getStyleClass().addAll("action-btn", "green-btn");
+        nextBtn.setOnAction(e -> {
+            currentYearMonth = currentYearMonth.plusMonths(1);
+            updateCalendar();
+        });
+
+        // Spacer
+        Region spacer1 = new Region();
+        HBox.setHgrow(spacer1, Priority.ALWAYS);
+
+        // Search
+        searchField = new TextField();
+        searchField.setPromptText("Search events...");
+        searchField.getStyleClass().add("search-box");
+        setupSearchField();
+
+        // Category Button
+        catBtn = new Button("Category");
+        catBtn.getStyleClass().addAll("action-btn", "green-btn");
+        setupCategoryButton(catBtn);
+
+        // View Icon (Mock)
+        Button viewBtn = new Button("📅");
+        viewBtn.getStyleClass().addAll("action-btn", "icon-btn");
+
+        // Create Event Button
+        createBtn = new Button("+ Create Event");
+        createBtn.getStyleClass().addAll("action-btn", "create-btn");
+        createBtn.setOnAction(e -> {
+            if (navigate != null)
+                navigate.accept("/create-event");
+        });
+
+        header.getChildren().addAll(prevBtn, monthYearLabel, nextBtn, spacer1, searchField, catBtn, viewBtn, createBtn);
+        return header;
+    }
+
+    private VBox createLeftSidebar(VBox mainContainer) {
+        VBox sidebar = new VBox(20);
+        sidebar.getStyleClass().add("sidebar-card");
+        sidebar.setAlignment(Pos.TOP_CENTER);
+        sidebar.setPrefWidth(220);
+        sidebar.setMinWidth(220);
+
+        // Date Display
+        sideCurrentDateNum = new Label(String.valueOf(LocalDate.now().getDayOfMonth()));
+        sideCurrentDateNum.getStyleClass().add("sidebar-date-num");
+
+        sideCurrentMonth = new Label(LocalDate.now().getMonth().toString()); // Initial
+        sideCurrentMonth.getStyleClass().add("sidebar-month");
+
+        sideCurrentYear = new Label(String.valueOf(LocalDate.now().getYear()));
+        sideCurrentYear.getStyleClass().add("sidebar-year");
+
+        // Large Color Box
+        sideColorBox = new Rectangle(100, 100, Color.web("#C8E6C9")); // Default light green
+        sideColorBox.setArcWidth(20);
+        sideColorBox.setArcHeight(20);
+
+        // Background Theme Selector
+        FlowPane legend = new FlowPane();
+        legend.setHgap(10);
+        legend.setVgap(10);
+        legend.setAlignment(Pos.CENTER);
+        legend.setPadding(new Insets(20, 0, 0, 0));
+
+        String[] colors = { "#FFF59D", "#FFCC80", "#FFAB91", "#C5E1A5", "#CE93D8", "#F48FB1", "#90CAF9", "#81D4FA" };
+        for (String c : colors) {
+            Rectangle r = new Rectangle(30, 30, Color.web(c));
+            r.setArcWidth(10);
+            r.setArcHeight(10);
+            r.setCursor(javafx.scene.Cursor.HAND);
+
+            // Interaction: Change Background on Click
+            r.setOnMouseClicked(e -> {
+                // 1. Change Main Background
+                mainContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, " + c + ", #FFFFFF);");
+
+                // 2. Change Large Sidebar Box
+                sideColorBox.setFill(Color.web(c));
+
+                // 3. Change Sidebar Text Color (Darker shade for readability or just matching)
+                // Just matching the interaction for now. Or keep black. User said "number also
+                // want to change".
+                // Assuming user implies the color matching the theme.
+                sideCurrentDateNum.setTextFill(Color.web(c).darker());
+                sideCurrentMonth.setTextFill(Color.web(c).darker());
+                sideCurrentYear.setTextFill(Color.web(c).darker());
+
+                // 4. Change Buttons Background
+                String btnStyle = "-fx-background-color: " + c
+                        + "; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand;";
+                catBtn.setStyle(btnStyle);
+                createBtn.setStyle(btnStyle);
+            });
+
+            legend.getChildren().add(r);
+        }
+
+        sidebar.getChildren().addAll(sideCurrentDateNum, sideCurrentMonth, sideCurrentYear, sideColorBox, legend);
+        return sidebar;
+    }
+
+    private void updateCalendar() {
+        calendarGrid.getChildren().clear();
+        calendarGrid.getColumnConstraints().clear();
+        calendarGrid.getRowConstraints().clear();
+
+        LocalDate firstDay = currentYearMonth.atDay(1);
+        monthYearLabel.setText(currentYearMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " "
+                + currentYearMonth.getYear());
+
+        // Update Sidebar
+        sideCurrentMonth.setText(currentYearMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+        sideCurrentYear.setText(String.valueOf(currentYearMonth.getYear()));
+
+        // --- Grid Column Config (7 columns equal width) ---
+        for (int i = 0; i < 7; i++) {
+            ColumnConstraints colConst = new ColumnConstraints();
+            colConst.setPercentWidth(100.0 / 7);
+            calendarGrid.getColumnConstraints().add(colConst);
+        }
+
+        // --- Header Row (Days) ---
+        // Adjust start day to Sunday to match picture
+        DayOfWeek[] days = { DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY };
+
+        for (int i = 0; i < 7; i++) {
+            StackPane headerCell = new StackPane();
+            headerCell.getStyleClass().add("header-cell");
+            Label dayName = new Label(days[i].getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+            dayName.getStyleClass().add("header-text");
+            headerCell.getChildren().add(dayName);
+            calendarGrid.add(headerCell, i, 0);
+        }
+
+        // --- Date Cells ---
+        int col = 0;
+        int row = 1;
+
+        // Determine start offset (Sunday = 0, Monday = 1, etc.)
+        // LocalDate.getDayOfWeek returns 1 (Mon) to 7 (Sun)
+        int startDayVal = firstDay.getDayOfWeek().getValue(); // Mon=1
+        // We want Sun=0, Mon=1...Sat=6
+        // If startDayVal is 7 (Sun), offset should be 0
+        // If 1 (Mon), offset 1
+        int offset = (startDayVal == 7) ? 0 : startDayVal;
+
+        // Previous Month Filler
+        LocalDate prevMonth = firstDay.minusDays(offset);
+        for (int i = 0; i < offset; i++) {
+            VBox cell = createDayCell(prevMonth.plusDays(i), true);
+            calendarGrid.add(cell, col++, row);
+        }
+
+        // Current Month
+        int daysInMonth = currentYearMonth.lengthOfMonth();
+        for (int i = 0; i < daysInMonth; i++) {
+            LocalDate date = firstDay.plusDays(i);
+            VBox cell = createDayCell(date, false);
+            calendarGrid.add(cell, col++, row);
+
+            if (col > 6) {
+                col = 0;
+                row++;
+            }
+        }
+
+        // Next Month Filler to complete the grid (up to 6 rows usually)
+        // int remainingCells = (42 - (offset + daysInMonth)); // 6 rows * 7 cols = 42
+        // Just fill the rest of the current row and maybe next
+        LocalDate nextMonth = firstDay.plusMonths(1);
+        int addedNext = 0;
+        while (row < 7) { // Ensure fixed height grid roughly
+            if (col > 6) {
+                col = 0;
+                row++;
+                if (row >= 7)
+                    break;
+            }
+            VBox cell = createDayCell(nextMonth.plusDays(addedNext++), true);
+            calendarGrid.add(cell, col++, row);
+
+            if (col > 6) {
+                col = 0;
+                row++;
+            }
+        }
+    }
+
+    private VBox createDayCell(LocalDate date, boolean isOtherMonth) {
+        VBox cell = new VBox(5);
+
+        // Hide other month cells completely
+        if (isOtherMonth) {
+            cell.setVisible(false);
+            return cell;
+        }
+
+        cell.getStyleClass().add("day-cell");
+
+        // Selection Check (Use distinct Blue for selection to differentiate from
+        // Categories)
+        if (date.equals(selectedDate)) {
+            cell.setStyle(
+                    "-fx-background-color: #E3F2FD; -fx-border-color: #2196F3; -fx-border-width: 2px; -fx-effect: dropshadow(gaussian, rgba(33, 150, 243, 0.4), 10, 0, 0, 0);");
+        }
+
+        // Interaction: Click to update sidebar and visuals
+        cell.setOnMouseClicked(e -> {
+            this.selectedDate = date; // Update selection state
+
+            // Update Sidebar
+            sideCurrentDateNum.setText(String.valueOf(date.getDayOfMonth()));
+            sideCurrentMonth.setText(date.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+            sideCurrentYear.setText(String.valueOf(date.getYear()));
+
+            // Update Visuals (Re-render grid)
+            updateCalendar();
+        });
+
+        // Today Check (Removed green background, keep text bold/different if needed, or
+        // remove completely)
+        // if (date.equals(LocalDate.now()) && !date.equals(selectedDate)) {
+        // cell.getStyleClass().add("current-day");
+        // }
+
+        // Date Number
+        Label num = new Label(String.valueOf(date.getDayOfMonth()));
+        num.getStyleClass().add("day-number");
+        HBox numBox = new HBox(num);
+        numBox.setAlignment(Pos.TOP_RIGHT);
+        cell.getChildren().add(numBox);
+
+        // Events
+        String searchText = (searchField.getText() == null) ? "" : searchField.getText().toLowerCase();
+
+        CalendarEvent firstEvent = null; // Store first event to color the box
+        int visibleEventCount = 0;
+
+        for (CalendarEvent e : events) {
+            LocalDate eStart = e.getStartDateTime().toLocalDate();
+            if (eStart.equals(date)) {
+                if (!activeFilters.contains(e.getCategory()))
+                    continue;
+                if (!searchText.isEmpty() && !e.getTitle().toLowerCase().contains(searchText))
+                    continue;
+
+                visibleEventCount++;
+                if (firstEvent == null)
+                    firstEvent = e;
+
+                Label eventLbl = new Label(e.getTitle());
+                eventLbl.getStyleClass().add("event-label");
+                // Reset internal label style if we are coloring the whole box, or keep it for
+                // contrast
+                // For now, keep it white text on category color for readability on top of
+                // colored box
+                String color = e.getColor();
+                eventLbl.setStyle("-fx-background-color: " + color
+                        + "; -fx-text-fill: white; -fx-background-radius: 3px; -fx-padding: 2px;");
+                cell.getChildren().add(eventLbl);
+            }
+        }
+
+        // If there are events, paint the whole box with the first event's category
+        // color (faded)
+        if (visibleEventCount > 0 && firstEvent != null && !date.equals(selectedDate)) {
+            String color = firstEvent.getColor();
+            // Apply background with lighter opacity for the whole cell
+            cell.setStyle("-fx-background-color: " + color + "33; -fx-border-color: #E0E0E0;");
+        } else if (!date.equals(selectedDate)) {
+            // Default background
+            cell.setStyle("-fx-background-color: white; -fx-border-color: #E0E0E0;");
+        }
+
+        return cell;
+    }
+
+    private void setupSearchField() {
+        ContextMenu searchSuggestions = new ContextMenu();
+        searchSuggestions.setMinWidth(200); // Set a minimum width for better visibility
+
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            // 1. Always update the calendar view for live filtering
+            updateCalendar();
+
+            // 2. Autocomplete Suggestions Logic
+            if (newVal == null || newVal.trim().isEmpty()) {
+                searchSuggestions.hide();
+            } else {
+                List<MenuItem> items = new ArrayList<>();
+                String lowerVal = newVal.toLowerCase();
+                Set<String> addedTitles = new HashSet<>();
+
+                for (CalendarEvent e : events) {
+                    // Check if event title contains search text
+                    if (e.getTitle().toLowerCase().contains(lowerVal)) {
+                        if (addedTitles.contains(e.getTitle()))
+                            continue;
+
+                        addedTitles.add(e.getTitle());
+                        MenuItem item = new MenuItem(e.getTitle());
+                        item.setOnAction(action -> {
+                            // On Selection:
+                            // A. Navigate to the event's month
+                            currentYearMonth = YearMonth.from(e.getStartDateTime());
+
+                            // B. Set the full title in search box (triggers filter to isolate this event)
+                            searchField.setText(e.getTitle());
+
+                            // C. Hide suggestions
+                            searchSuggestions.hide();
+
+                            // D. Force update to render the target month with filtered event
+                            updateCalendar();
+                        });
+                        items.add(item);
+                    }
+                }
+
+                if (!items.isEmpty()) {
+                    searchSuggestions.getItems().setAll(items);
+                    if (!searchSuggestions.isShowing()) {
+                        searchSuggestions.show(searchField, javafx.geometry.Side.BOTTOM, 0, 0);
+                    }
+                } else {
+                    searchSuggestions.hide();
+                }
+            }
+        });
+    }
+
+    private void setupCategoryButton(Button btn) {
+        ContextMenu contextMenu = new ContextMenu();
+        // Add CheckMenuItems for each category
+        for (Category c : Category.values()) {
+            CheckMenuItem item = new CheckMenuItem(c.getName());
+            item.setSelected(true); // Initially all selected
+            item.setOnAction(e -> {
+                if (item.isSelected()) {
+                    activeFilters.add(c.getId());
+                } else {
+                    activeFilters.remove(c.getId());
+                }
+                updateCalendar(); // Refresh view
+            });
+            contextMenu.getItems().add(item);
+        }
+
+        btn.setOnAction(e -> {
+            contextMenu.show(btn, javafx.geometry.Side.BOTTOM, 0, 0);
+        });
+    }
+}

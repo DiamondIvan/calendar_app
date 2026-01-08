@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run Backend",
+      "request": "launch",
+      "mainClass": "com.example.backend.BackendApplication",
+      "projectName": "backend"
+    },
+    {
+      "type": "java",
+      "name": "Run Frontend",
+      "request": "launch",
+      "mainClass": "com.example.frontend.Launcher",
+      "projectName": "frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Run Fullstack",
+      "configurations": ["Run Backend", "Run Frontend"]
+    }
+  ]
+}

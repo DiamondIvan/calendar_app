@@ -1,0 +1,120 @@
+/* Root Container - The Green Background */
+.root-container {
+    -fx-background-color: #d1e7dd; /* Light Green */
+    -fx-padding: 30;
+}
+
+/* The Main White Card in the center */
+.main-white-card {
+    -fx-background-color: white;
+    -fx-background-radius: 40px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 20, 0, 0, 5);
+    /* Adjust padding to keep content away from rounded corners */
+    -fx-padding: 10; 
+}
+
+/* Navigation Icons Styles */
+.nav-icon-btn {
+    -fx-background-color: transparent;
+    -fx-font-size: 24px;
+    -fx-text-fill: #555;
+    -fx-cursor: hand;
+}
+.nav-icon-btn:hover {
+    -fx-text-fill: #333;
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+}
+
+.nav-toggle-btn {
+    -fx-background-color: transparent;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+    -fx-border-color: #333;
+    -fx-border-radius: 20px;
+    -fx-border-width: 2px;
+    -fx-cursor: hand;
+}
+
+/* Header Text */
+.home-title {
+    -fx-font-size: 3em; 
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c2c2c;
+    -fx-font-family: "Arial";
+}
+
+.home-subtitle {
+    -fx-font-size: 1.2em;
+    -fx-text-fill: #777;
+    -fx-padding: 0 0 10 0;
+}
+
+/* User Section */
+.user-name {
+    -fx-font-size: 1.2em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.logout-btn {
+    -fx-background-color: #ff6b6b; /* Salmon red */
+    -fx-text-fill: white;
+    -fx-background-radius: 20px;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+.logout-btn:hover {
+    -fx-background-color: #ff5252;
+}
+
+/* Cards Grid */
+.home-cards {
+    -fx-alignment: center;
+    -fx-padding: 20;
+    -fx-pref-width: 1000px;
+}
+
+/* Individual Card Styling */
+.card {
+    -fx-background-color: white; /* Card on white background needs border or shadow to pop? 
+                                    Actually in the picture, the main container is white, 
+                                    and cards are also white BUT they have a shadow 
+                                    Wait, looking closer at Picture 2:
+                                    The cards (Calendar, Login...) have a subtle shadow 
+                                    and border slightly distinguishing them, 
+                                    OR they are just spaced clearly. 
+                                    Let's add a subtle border or shadow. */
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 2);
+    -fx-padding: 20;
+    -fx-alignment: top-center;
+    -fx-pref-width: 260;
+    -fx-pref-height: 140;
+    -fx-spacing: 10;
+    -fx-cursor: hand;
+    -fx-border-color: #f0f0f0;
+    -fx-border-width: 1px;
+}
+
+.card:hover {
+    -fx-translate-y: -5;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 5);
+}
+
+.card-title {
+    -fx-font-size: 1.4em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #007bff; /* Blue */
+}
+
+.card-desc {
+    -fx-font-size: 0.9em;
+    -fx-text-fill: #666;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+}

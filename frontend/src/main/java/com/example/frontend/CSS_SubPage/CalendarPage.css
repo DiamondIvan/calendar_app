@@ -1,0 +1,151 @@
+/* Main Container */
+.main-container {
+    -fx-background-color: #f8f9fa; /* Light gray bg */
+    -fx-padding: 20px;
+}
+
+/* Header Bar */
+.header-month-label {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.action-btn {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-text-fill: #333;
+    -fx-cursor: hand;
+    -fx-padding: 8 15;
+}
+
+.green-btn {
+    -fx-border-color: #4CAF50;
+    -fx-text-fill: #4CAF50;
+}
+
+.green-btn:hover {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+}
+
+.icon-btn {
+    -fx-padding: 8 10;
+}
+
+.create-btn {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.create-btn:hover {
+    -fx-background-color: #45a049;
+}
+
+.search-box {
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-padding: 8 15;
+    -fx-pref-width: 250px;
+}
+
+/* Sidebar */
+.sidebar-card {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);
+    -fx-background-radius: 15px;
+    -fx-padding: 30px;
+}
+
+.sidebar-date-num {
+    -fx-font-size: 80px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4CAF50;
+    -fx-padding: 0;
+    -fx-line-spacing: 0;
+}
+
+.sidebar-month {
+    -fx-font-size: 24px;
+    -fx-text-fill: #666;
+}
+
+.sidebar-year {
+    -fx-font-size: 18px;
+    -fx-text-fill: #999;
+}
+
+/* Calendar Card */
+.calendar-card {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);
+    -fx-background-radius: 15px;
+    -fx-padding: 20px;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    -fx-hgap: 0;
+    -fx-vgap: 0;
+    -fx-border-color: #eee;
+    -fx-border-width: 1px;
+}
+
+/* Header Cells (Mon, Tue...) */
+.header-cell {
+    -fx-padding: 15px;
+    -fx-alignment: center;
+    -fx-border-color: #eee;
+    -fx-border-width: 0 1px 1px 0;
+}
+
+.header-text {
+    -fx-font-weight: bold;
+    -fx-text-fill: #666;
+}
+
+/* Day Cells */
+.day-cell {
+    -fx-alignment: top-left;
+    -fx-border-color: #eee;
+    -fx-border-width: 0 1px 1px 0;
+    -fx-min-height: 100px; /* Force minimum height for grid cells */
+    -fx-padding: 5px;
+    -fx-background-color: white;
+}
+
+.other-month {
+    -fx-background-color: #fafafa;
+}
+
+.day-number {
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+    -fx-padding: 5px;
+    -fx-font-weight: bold;
+}
+
+.other-month .day-number {
+    -fx-text-fill: #bbb;
+}
+
+.current-day {
+    -fx-background-color: #E8F5E9; /* Very light green */
+}
+
+.current-day .day-number {
+    -fx-text-fill: #4CAF50;
+    -fx-font-size: 16px;
+}
+
+.event-label {
+    -fx-padding: 2 5;
+    -fx-background-radius: 3;
+    -fx-font-size: 10px;
+    -fx-cursor: hand;
+    -fx-min-width: 80%;
+}
+
