@@ -16,8 +16,8 @@
   border-radius: 40px;
   -fx-padding: 40;
   padding: 40px;
-  -fx-max-width: 1200;
-  max-width: 1200px;
+  -fx-max-width: 1000;
+  max-width: 1000px;
 }
 
 .title-label {
@@ -98,6 +98,7 @@
 .team-name {
   -fx-text-fill: #333;
   -fx-font-weight: bold;
+  font-weight: bold;
 }
 
 .team-role {
@@ -107,6 +108,7 @@
 .feature-list-title {
   -fx-text-fill: #333;
   -fx-font-weight: bold;
+  font-weight: bold;
 }
 
 .feature-list-desc {
@@ -123,6 +125,10 @@
 .feature-box {
   -fx-background-color: white;
   background-color: white;
+  -fx-background-radius: 15;
+  border-radius: 15px;
+  -fx-border-radius: 15;
+  border-radius: 15px;
   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 0, 2);
   -fx-padding: 20;
   padding: 20px;

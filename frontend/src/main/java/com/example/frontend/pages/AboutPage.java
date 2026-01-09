@@ -200,7 +200,7 @@ public class AboutPage {
                                 createTeamMember("mak-jia-hng.jpg", "Mak Jia Hng", ""),
                                 createTeamMember("tiew.jpg", "Tiew Yi Nuo", ""),
                                 createTeamMember("fong.jpg", "Fong Jun Toh", "(Group Leader)"),
-                                createTeamMember("angel.jpg", "Tan Ke Qin", ""),
+                                createTeamMember("angel.jpg", "Angel Tan Ke Qin", ""),
                                 createTeamMember("penghan.jpg", "Ng Peng Han", ""));
 
                 // --- 6. ALL FEATURES (Program List) ---
