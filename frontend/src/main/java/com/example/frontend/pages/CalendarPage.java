@@ -191,8 +191,8 @@ public class CalendarPage {
                     h.getTitle(),
                     h.getStartDateTime(),
                     h.getEndDateTime(),
-                    "#FF5722", // Orange for Holidays
-                    "HOLIDAY");
+                    Category.HOLIDAY.getColorHex(),
+                    Category.HOLIDAY.getId());
             this.events.add(viewEvent);
         }
 
@@ -667,6 +667,16 @@ public class CalendarPage {
     }
 
     private void showEventOptionsDialog(CalendarEvent event) {
+        if (event != null && event.getCategory() != null
+                && event.getCategory().equalsIgnoreCase(Category.HOLIDAY.getId())) {
+            Alert dialog = new Alert(Alert.AlertType.INFORMATION);
+            dialog.setTitle("Holiday");
+            dialog.setHeaderText(event.getTitle());
+            dialog.setContentText("Public Holiday");
+            dialog.showAndWait();
+            return;
+        }
+
         Alert dialog = new Alert(Alert.AlertType.NONE);
         dialog.setTitle("Event Options");
         dialog.setHeaderText(event.getTitle());
