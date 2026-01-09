@@ -15,6 +15,10 @@ import com.example.frontend.model.CalendarEvent;
 import com.example.frontend.model.Event;
 import com.example.frontend.context.ThemeManager;
 
+import javafx.animation.FadeTransition;
+import javafx.event.ActionEvent;
+import javafx.util.Duration;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,10 +26,13 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.Comparator;
 import java.util.function.Consumer;
 
 public class CalendarPage {
@@ -35,13 +42,15 @@ public class CalendarPage {
     private final AppUser currentUser;
 
     private YearMonth currentYearMonth;
-    private LocalDate selectedDate; // Track selected date
+    private LocalDate selectedDate; // Track selected date (nullable when deselected)
     private List<CalendarEvent> events;
     private Set<String> activeFilters = new HashSet<>();
 
     private Label monthYearLabel;
     private GridPane calendarGrid;
     private TextField searchField;
+
+    private final Map<LocalDate, Region> selectionOverlayByDate = new HashMap<>();
 
     // Side Panel Components
     private Label sideCurrentDateNum;
@@ -334,6 +343,7 @@ public class CalendarPage {
         // View Icon (Mock)
         Button viewBtn = new Button("📅");
         viewBtn.getStyleClass().addAll("action-btn", "icon-btn");
+        setupDateSearchButton(viewBtn);
 
         // Create Event Button
         createBtn = new Button("+ Create Event");
@@ -345,6 +355,95 @@ public class CalendarPage {
 
         header.getChildren().addAll(prevBtn, monthYearLabel, nextBtn, spacer1, searchField, catBtn, viewBtn, createBtn);
         return header;
+    }
+
+    private void setupDateSearchButton(Button viewBtn) {
+        viewBtn.setOnAction(e -> showDateSearchDialog());
+    }
+
+    private void showDateSearchDialog() {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Search Events by Date");
+        dialog.setHeaderText(null);
+
+        LocalDate defaultDate = (selectedDate != null) ? selectedDate : LocalDate.now();
+
+        DatePicker startPicker = new DatePicker(defaultDate);
+        DatePicker endPicker = new DatePicker(defaultDate);
+
+        ListView<String> resultsList = new ListView<>();
+        resultsList.setPrefHeight(260);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(10));
+
+        grid.add(new Label("Start date:"), 0, 0);
+        grid.add(startPicker, 1, 0);
+        grid.add(new Label("End date:"), 0, 1);
+        grid.add(endPicker, 1, 1);
+        grid.add(new Label("Results:"), 0, 2);
+        GridPane.setColumnSpan(resultsList, 2);
+        grid.add(resultsList, 0, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType searchBtnType = new ButtonType("Search", ButtonBar.ButtonData.APPLY);
+        dialog.getDialogPane().getButtonTypes().addAll(searchBtnType, ButtonType.CLOSE);
+
+        Button searchBtn = (Button) dialog.getDialogPane().lookupButton(searchBtnType);
+        if (searchBtn != null) {
+            searchBtn.addEventFilter(ActionEvent.ACTION, evt -> {
+                evt.consume();
+
+                LocalDate start = startPicker.getValue();
+                LocalDate end = endPicker.getValue();
+                if (start == null || end == null) {
+                    resultsList.getItems().setAll("Please select both a start and end date.");
+                    return;
+                }
+                if (end.isBefore(start)) {
+                    resultsList.getItems().setAll("End date must be on/after start date.");
+                    return;
+                }
+
+                String searchText = (searchField != null && searchField.getText() != null)
+                        ? searchField.getText().trim().toLowerCase()
+                        : "";
+
+                List<CalendarEvent> matches = new ArrayList<>();
+                for (CalendarEvent ev : events) {
+                    LocalDate evDate = ev.getStartDateTime().toLocalDate();
+                    if (evDate.isBefore(start) || evDate.isAfter(end)) {
+                        continue;
+                    }
+                    if (!activeFilters.contains(ev.getCategory())) {
+                        continue;
+                    }
+                    if (!searchText.isEmpty() && !ev.getTitle().toLowerCase().contains(searchText)) {
+                        continue;
+                    }
+                    matches.add(ev);
+                }
+
+                matches.sort(Comparator.comparing(CalendarEvent::getStartDateTime));
+
+                if (matches.isEmpty()) {
+                    resultsList.getItems().setAll("No matching events found for the selected dates.");
+                    return;
+                }
+
+                List<String> lines = new ArrayList<>();
+                for (CalendarEvent ev : matches) {
+                    String when = ev.getStartDateTime().toString().replace('T', ' ');
+                    lines.add(when + " - " + ev.getTitle() + " (" + ev.getCategory() + ")");
+                }
+                resultsList.getItems().setAll(lines);
+            });
+        }
+
+        dialog.showAndWait();
     }
 
     private VBox createLeftSidebar(VBox mainContainer) {
@@ -416,6 +515,8 @@ public class CalendarPage {
         calendarGrid.getColumnConstraints().clear();
         calendarGrid.getRowConstraints().clear();
 
+        selectionOverlayByDate.clear();
+
         LocalDate firstDay = currentYearMonth.atDay(1);
         monthYearLabel.setText(currentYearMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " "
                 + currentYearMonth.getYear());
@@ -460,7 +561,7 @@ public class CalendarPage {
         // Previous Month Filler
         LocalDate prevMonth = firstDay.minusDays(offset);
         for (int i = 0; i < offset; i++) {
-            VBox cell = createDayCell(prevMonth.plusDays(i), true);
+            StackPane cell = createDayCell(prevMonth.plusDays(i), true);
             calendarGrid.add(cell, col++, row);
         }
 
@@ -468,7 +569,7 @@ public class CalendarPage {
         int daysInMonth = currentYearMonth.lengthOfMonth();
         for (int i = 0; i < daysInMonth; i++) {
             LocalDate date = firstDay.plusDays(i);
-            VBox cell = createDayCell(date, false);
+            StackPane cell = createDayCell(date, false);
             calendarGrid.add(cell, col++, row);
 
             if (col > 6) {
@@ -489,7 +590,7 @@ public class CalendarPage {
                 if (row >= 7)
                     break;
             }
-            VBox cell = createDayCell(nextMonth.plusDays(addedNext++), true);
+            StackPane cell = createDayCell(nextMonth.plusDays(addedNext++), true);
             calendarGrid.add(cell, col++, row);
 
             if (col > 6) {
@@ -499,35 +600,90 @@ public class CalendarPage {
         }
     }
 
-    private VBox createDayCell(LocalDate date, boolean isOtherMonth) {
-        VBox cell = new VBox(5);
+    private void fadeSelectionOverlay(Region overlay, double from, double to, Runnable onFinished) {
+        if (overlay == null) {
+            return;
+        }
+
+        FadeTransition ft = new FadeTransition(Duration.millis(160), overlay);
+        ft.setFromValue(from);
+        ft.setToValue(to);
+        ft.setOnFinished(evt -> {
+            if (onFinished != null) {
+                onFinished.run();
+            }
+        });
+        ft.play();
+    }
+
+    private void setSelectedDateAnimated(LocalDate newDate) {
+        if (newDate == null) {
+            return;
+        }
+
+        // Toggle off if clicking the already-selected date
+        if (this.selectedDate != null && newDate.equals(this.selectedDate)) {
+            Region overlay = selectionOverlayByDate.get(this.selectedDate);
+            this.selectedDate = null;
+            if (overlay != null) {
+                overlay.setVisible(true);
+                fadeSelectionOverlay(overlay, overlay.getOpacity(), 0.0, () -> overlay.setVisible(false));
+            }
+            return;
+        }
+
+        LocalDate oldDate = this.selectedDate;
+        this.selectedDate = newDate;
+
+        Region oldOverlay = (oldDate == null) ? null : selectionOverlayByDate.get(oldDate);
+        if (oldOverlay != null) {
+            oldOverlay.setVisible(true);
+            fadeSelectionOverlay(oldOverlay, oldOverlay.getOpacity(), 0.0, () -> oldOverlay.setVisible(false));
+        }
+
+        Region newOverlay = selectionOverlayByDate.get(newDate);
+        if (newOverlay != null) {
+            newOverlay.setVisible(true);
+            newOverlay.setOpacity(0.0);
+            fadeSelectionOverlay(newOverlay, 0.0, 1.0, null);
+        }
+    }
+
+    private StackPane createDayCell(LocalDate date, boolean isOtherMonth) {
+        StackPane cellRoot = new StackPane();
+        VBox content = new VBox(5);
+        cellRoot.getChildren().add(content);
 
         // Hide other month cells completely
         if (isOtherMonth) {
-            cell.setVisible(false);
-            return cell;
+            cellRoot.setVisible(false);
+            return cellRoot;
         }
 
-        cell.getStyleClass().add("day-cell");
+        cellRoot.getStyleClass().add("day-cell");
 
-        // Selection Check (Use distinct Blue for selection to differentiate from
-        // Categories)
-        if (date.equals(selectedDate)) {
-            cell.setStyle(
-                    "-fx-background-color: #E3F2FD; -fx-border-color: #2196F3; -fx-border-width: 2px; -fx-effect: dropshadow(gaussian, rgba(33, 150, 243, 0.4), 10, 0, 0, 0);");
-        }
+        // Selection overlay (so we can fade it in/out without re-rendering)
+        Region selectionOverlay = new Region();
+        selectionOverlay.setMouseTransparent(true);
+        selectionOverlay.setStyle(
+                "-fx-background-color: #E3F2FD; -fx-border-color: #2196F3; -fx-border-width: 2px;"
+                        + " -fx-effect: dropshadow(gaussian, rgba(33, 150, 243, 0.4), 10, 0, 0, 0);");
+        selectionOverlay.prefWidthProperty().bind(cellRoot.widthProperty());
+        selectionOverlay.prefHeightProperty().bind(cellRoot.heightProperty());
+        boolean isSelected = selectedDate != null && date.equals(selectedDate);
+        selectionOverlay.setVisible(isSelected);
+        selectionOverlay.setOpacity(isSelected ? 1.0 : 0.0);
+        cellRoot.getChildren().add(0, selectionOverlay);
+        selectionOverlayByDate.put(date, selectionOverlay);
 
         // Interaction: Click to update sidebar and visuals
-        cell.setOnMouseClicked(e -> {
-            this.selectedDate = date; // Update selection state
+        cellRoot.setOnMouseClicked(e -> {
+            setSelectedDateAnimated(date);
 
             // Update Sidebar
             sideCurrentDateNum.setText(String.valueOf(date.getDayOfMonth()));
             sideCurrentMonth.setText(date.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
             sideCurrentYear.setText(String.valueOf(date.getYear()));
-
-            // Update Visuals (Re-render grid)
-            updateCalendar();
         });
 
         // Today Check (Removed green background, keep text bold/different if needed, or
@@ -541,7 +697,7 @@ public class CalendarPage {
         num.getStyleClass().add("day-number");
         HBox numBox = new HBox(num);
         numBox.setAlignment(Pos.TOP_RIGHT);
-        cell.getChildren().add(numBox);
+        content.getChildren().add(numBox);
 
         // Events
         String searchText = (searchField.getText() == null) ? "" : searchField.getText().toLowerCase();
@@ -577,22 +733,22 @@ public class CalendarPage {
                     showEventOptionsDialog(e);
                 });
 
-                cell.getChildren().add(eventLbl);
+                content.getChildren().add(eventLbl);
             }
         }
 
         // If there are events, paint the whole box with the first event's category
         // color (faded)
-        if (visibleEventCount > 0 && firstEvent != null && !date.equals(selectedDate)) {
+        if (visibleEventCount > 0 && firstEvent != null) {
             String color = firstEvent.getColor();
             // Apply background with lighter opacity for the whole cell
-            cell.setStyle("-fx-background-color: " + color + "33; -fx-border-color: #E0E0E0;");
-        } else if (!date.equals(selectedDate)) {
+            cellRoot.setStyle("-fx-background-color: " + color + "33; -fx-border-color: #E0E0E0;");
+        } else {
             // Default background
-            cell.setStyle("-fx-background-color: white; -fx-border-color: #E0E0E0;");
+            cellRoot.setStyle("-fx-background-color: white; -fx-border-color: #E0E0E0;");
         }
 
-        return cell;
+        return cellRoot;
     }
 
     private void setupSearchField() {
