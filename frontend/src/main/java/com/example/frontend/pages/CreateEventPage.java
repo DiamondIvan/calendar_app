@@ -50,6 +50,33 @@ public class CreateEventPage {
     }
 
     public Node getView() {
+        // Check if user is logged in - redirect to login if not
+        if (currentUser == null || currentUser.getId() == null || currentUser.getId() <= 0) {
+            VBox loginPrompt = new VBox(20);
+            loginPrompt.setAlignment(Pos.CENTER);
+            loginPrompt.setPadding(new Insets(50));
+
+            if (navigate != null) {
+                loginPrompt.getChildren().add(new com.example.frontend.components.NavBar(navigate));
+            }
+
+            Label message = new Label("Please log in to create events");
+            message.setStyle("-fx-font-size: 18px; -fx-text-fill: #555;");
+
+            Button loginBtn = new Button("Go to Login");
+            loginBtn.setStyle("-fx-font-size: 14px; -fx-padding: 10 30;");
+            loginBtn.setOnAction(e -> {
+                if (navigate != null)
+                    navigate.accept("/login");
+            });
+
+            VBox content = new VBox(20, message, loginBtn);
+            content.setAlignment(Pos.CENTER);
+            loginPrompt.getChildren().add(content);
+
+            return loginPrompt;
+        }
+
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent;");
@@ -237,11 +264,16 @@ public class CreateEventPage {
             }
 
             Event event = new Event();
-            // Handle anonymous user
-            if (currentUser != null) {
+            // Set user ID (should always have currentUser due to login check)
+            if (currentUser != null && currentUser.getId() != null) {
                 event.setUserId(currentUser.getId());
+                System.out.println("DEBUG CreateEventPage: Set userId to " + currentUser.getId() + " for user "
+                        + currentUser.getName());
             } else {
-                event.setUserId(-1); // Guest ID or handle otherwise
+                // This shouldn't happen due to login check, but fallback just in case
+                System.err.println("ERROR: currentUser is null or has null ID!");
+                showAlert("Error", "You must be logged in to create events");
+                return;
             }
             event.setTitle(titleField.getText());
             event.setDescription(descArea.getText());

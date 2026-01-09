@@ -17,6 +17,7 @@ import com.example.frontend.model.Event;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -88,15 +89,15 @@ public class CalendarPage {
             this.events.add(viewEvent);
         }
 
-        if (currentUser == null)
-            return;
-
         // 2. Load User Events
         List<Event> dbEvents = eventService.loadEvents();
         // DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+        int userIdToFilter = (currentUser != null) ? currentUser.getId() : -1;
+
         for (Event dbEvent : dbEvents) {
-            if (dbEvent.getUserId() != currentUser.getId())
+            // Show events that match the current user ID (or -1 for anonymous users)
+            if (dbEvent.getUserId() != userIdToFilter)
                 continue;
             try {
                 LocalDateTime start = dbEvent.getStartDateTime();
@@ -458,7 +459,14 @@ public class CalendarPage {
                 // colored box
                 String color = e.getColor();
                 eventLbl.setStyle("-fx-background-color: " + color
-                        + "; -fx-text-fill: white; -fx-background-radius: 3px; -fx-padding: 2px;");
+                        + "; -fx-text-fill: white; -fx-background-radius: 3px; -fx-padding: 2px; -fx-cursor: hand;");
+
+                // Make event clickable to show options
+                eventLbl.setOnMouseClicked(evt -> {
+                    evt.consume(); // Prevent cell click from firing
+                    showEventOptionsDialog(e);
+                });
+
                 cell.getChildren().add(eventLbl);
             }
         }
@@ -551,5 +559,185 @@ public class CalendarPage {
         btn.setOnAction(e -> {
             contextMenu.show(btn, javafx.geometry.Side.BOTTOM, 0, 0);
         });
+    }
+
+    private void showEventOptionsDialog(CalendarEvent event) {
+        Alert dialog = new Alert(Alert.AlertType.NONE);
+        dialog.setTitle("Event Options");
+        dialog.setHeaderText(event.getTitle());
+
+        // Content with event details
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
+
+        Label detailsLabel = new Label("Start: " + event.getStartDateTime().toString().replace('T', ' ') + "\n" +
+                "End: " + event.getEndDateTime().toString().replace('T', ' ') + "\n" +
+                "Category: " + event.getCategory());
+        detailsLabel.setWrapText(true);
+        content.getChildren().add(detailsLabel);
+
+        dialog.getDialogPane().setContent(content);
+
+        // Custom buttons
+        ButtonType editBtn = new ButtonType("Edit", ButtonBar.ButtonData.OK_DONE);
+        ButtonType deleteBtn = new ButtonType("Delete", ButtonBar.ButtonData.OTHER);
+        ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        dialog.getButtonTypes().setAll(editBtn, deleteBtn, cancelBtn);
+
+        // Style the delete button to be red
+        Button deleteBtnNode = (Button) dialog.getDialogPane().lookupButton(deleteBtn);
+        if (deleteBtnNode != null) {
+            deleteBtnNode.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+        }
+
+        dialog.showAndWait().ifPresent(response -> {
+            if (response == editBtn) {
+                editEvent(event);
+            } else if (response == deleteBtn) {
+                deleteEvent(event);
+            }
+        });
+    }
+
+    private void editEvent(CalendarEvent event) {
+        // Find the actual event from the service
+        List<Event> dbEvents = eventService.loadEvents();
+        Event dbEvent = dbEvents.stream()
+                .filter(e -> String.valueOf(e.getId()).equals(event.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (dbEvent == null) {
+            showAlert("Error", "Event not found");
+            return;
+        }
+
+        // Create edit dialog
+        Dialog<Event> dialog = new Dialog<>();
+        dialog.setTitle("Edit Event");
+        dialog.setHeaderText("Edit " + event.getTitle());
+
+        // Create form
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField titleField = new TextField(dbEvent.getTitle());
+        TextArea descArea = new TextArea(dbEvent.getDescription());
+        descArea.setPrefRowCount(3);
+
+        DatePicker startDatePicker = new DatePicker(dbEvent.getStartDateTime().toLocalDate());
+        ComboBox<String> startTimeBox = new ComboBox<>();
+        startTimeBox.getItems().addAll(generateTimeSlots());
+        startTimeBox.setValue(dbEvent.getStartDateTime().toLocalTime().toString());
+
+        DatePicker endDatePicker = new DatePicker(dbEvent.getEndDateTime().toLocalDate());
+        ComboBox<String> endTimeBox = new ComboBox<>();
+        endTimeBox.getItems().addAll(generateTimeSlots());
+        endTimeBox.setValue(dbEvent.getEndDateTime().toLocalTime().toString());
+
+        ComboBox<Category> categoryBox = new ComboBox<>();
+        categoryBox.getItems().addAll(Category.values());
+        for (Category c : Category.values()) {
+            if (c.getId().equals(dbEvent.getCategory())) {
+                categoryBox.setValue(c);
+                break;
+            }
+        }
+
+        grid.add(new Label("Title:"), 0, 0);
+        grid.add(titleField, 1, 0);
+        grid.add(new Label("Description:"), 0, 1);
+        grid.add(descArea, 1, 1);
+        grid.add(new Label("Start Date:"), 0, 2);
+        grid.add(startDatePicker, 1, 2);
+        grid.add(new Label("Start Time:"), 0, 3);
+        grid.add(startTimeBox, 1, 3);
+        grid.add(new Label("End Date:"), 0, 4);
+        grid.add(endDatePicker, 1, 4);
+        grid.add(new Label("End Time:"), 0, 5);
+        grid.add(endTimeBox, 1, 5);
+        grid.add(new Label("Category:"), 0, 6);
+        grid.add(categoryBox, 1, 6);
+
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType saveBtn = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().setAll(saveBtn, cancelBtn);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveBtn) {
+                try {
+                    dbEvent.setTitle(titleField.getText());
+                    dbEvent.setDescription(descArea.getText());
+
+                    LocalTime startTime = LocalTime.parse(startTimeBox.getValue());
+                    LocalTime endTime = LocalTime.parse(endTimeBox.getValue());
+
+                    dbEvent.setStartDateTime(LocalDateTime.of(startDatePicker.getValue(), startTime));
+                    dbEvent.setEndDateTime(LocalDateTime.of(endDatePicker.getValue(), endTime));
+
+                    if (categoryBox.getValue() != null) {
+                        dbEvent.setCategory(categoryBox.getValue().getId());
+                    }
+
+                    return dbEvent;
+                } catch (Exception e) {
+                    showAlert("Error", "Invalid input: " + e.getMessage());
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updatedEvent -> {
+            eventService.updateEvent(updatedEvent.getId(), updatedEvent);
+            showAlert("Success", "Event updated successfully!");
+            loadEventsFromBackend();
+            updateCalendar();
+        });
+    }
+
+    private void deleteEvent(CalendarEvent event) {
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm Delete");
+        confirmation.setHeaderText("Delete Event");
+        confirmation.setContentText(
+                "Are you sure you want to delete \"" + event.getTitle() + "\"?\n\nThis action cannot be undone.");
+
+        confirmation.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    int eventId = Integer.parseInt(event.getId());
+                    eventService.deleteEvent(eventId);
+                    showAlert("Success", "Event deleted successfully!");
+                    loadEventsFromBackend();
+                    updateCalendar();
+                } catch (Exception e) {
+                    showAlert("Error", "Failed to delete event: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    private java.util.List<String> generateTimeSlots() {
+        java.util.List<String> times = new java.util.ArrayList<>();
+        for (int h = 0; h < 24; h++) {
+            for (int m = 0; m < 60; m += 15) {
+                times.add(String.format("%02d:%02d", h, m));
+            }
+        }
+        return times;
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.show();
     }
 }

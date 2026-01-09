@@ -44,6 +44,11 @@ public class App extends Application {
             return;
 
         switch (route) {
+            case "/logout":
+                // Clear session and redirect to login
+                this.currentUser = null;
+                navigate("/login");
+                break;
             case "/login":
                 LoginPage loginPage = new LoginPage(this::navigate, userService, this);
                 scene.setRoot(new StackPane(loginPage.getView()));
