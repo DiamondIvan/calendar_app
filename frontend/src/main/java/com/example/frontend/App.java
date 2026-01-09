@@ -73,7 +73,7 @@ public class App extends Application {
                 scene.setRoot(createThemedRoot(createEventPage.getView(), theme));
                 break;
             case "/statistics":
-                StatisticsPage statsPage = new StatisticsPage(this::navigate);
+                StatisticsPage statsPage = new StatisticsPage(this::navigate, eventService, currentUser);
                 scene.setRoot(createThemedRoot(statsPage.getView(), theme));
                 break;
             case "/backup-restore":

@@ -10,19 +10,35 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import com.example.frontend.model.Category;
-import com.example.frontend.model.StaticEvents;
+import com.example.frontend.model.Event;
+import com.example.frontend.model.HolidayData;
+import com.example.frontend.model.AppUser;
+import com.example.frontend.service.EventCsvService;
+
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class StatisticsPage {
 
     private final Consumer<String> navigate;
+    private final EventCsvService eventService;
+    private final AppUser currentUser;
 
     public StatisticsPage() {
-        this.navigate = null;
+        this(null, new EventCsvService(), null);
     }
 
     public StatisticsPage(Consumer<String> navigate) {
+        this(navigate, new EventCsvService(), null);
+    }
+
+    public StatisticsPage(Consumer<String> navigate, EventCsvService eventService, AppUser currentUser) {
         this.navigate = navigate;
+        this.eventService = (eventService != null) ? eventService : new EventCsvService();
+        this.currentUser = currentUser;
     }
 
     public Node getView() {
@@ -59,21 +75,57 @@ public class StatisticsPage {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Events");
 
+        Map<Category, Long> counts = countEventsByCategory();
         for (Category cat : Category.values()) {
-            long count = StaticEvents.STATIC_SUGGESTIONS.stream()
-                    .filter(e -> cat.getId().equalsIgnoreCase(e.getCategory()))
-                    .count();
-
-            if (count == 0)
-                count = (long) (Math.random() * 5);
-
-            XYChart.Data<String, Number> data = new XYChart.Data<>(cat.getName(), count);
-            series.getData().add(data);
+            long count = counts.getOrDefault(cat, 0L);
+            series.getData().add(new XYChart.Data<>(cat.getName(), count));
         }
 
         barChart.getData().add(series);
 
         root.getChildren().addAll(title, barChart);
         return root;
+    }
+
+    private Map<Category, Long> countEventsByCategory() {
+        Map<Category, Long> counts = new EnumMap<>(Category.class);
+        for (Category c : Category.values()) {
+            counts.put(c, 0L);
+        }
+
+        // Holidays (always visible on calendar)
+        List<Event> holidays = HolidayData.getHolidays2026();
+        counts.compute(Category.HOLIDAY, (k, v) -> (v == null ? 0L : v) + (long) holidays.size());
+
+        // User events (same filter logic as CalendarPage)
+        int userIdToFilter = (currentUser != null) ? currentUser.getId() : -1;
+        List<Event> events = eventService.loadEvents();
+
+        for (Event e : events) {
+            if (e == null) {
+                continue;
+            }
+            if (e.getUserId() != userIdToFilter) {
+                continue;
+            }
+
+            Category resolved = resolveCategory(e.getCategory());
+            counts.compute(resolved, (k, v) -> (v == null ? 0L : v) + 1L);
+        }
+
+        return counts;
+    }
+
+    private Category resolveCategory(String categoryId) {
+        if (categoryId == null) {
+            return Category.PROFESSIONAL;
+        }
+        String normalized = categoryId.trim().toUpperCase(Locale.ROOT);
+        for (Category c : Category.values()) {
+            if (c.getId().equalsIgnoreCase(normalized)) {
+                return c;
+            }
+        }
+        return Category.PROFESSIONAL;
     }
 }
