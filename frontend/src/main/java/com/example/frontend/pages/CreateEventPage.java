@@ -35,18 +35,6 @@ public class CreateEventPage {
 
     private Consumer<String> navigate;
 
-    private void themeSolidButton(Button button, String normalBg, String hoverBg) {
-        if (button == null) {
-            return;
-        }
-
-        button.setStyle("-fx-background-color: " + normalBg + "; -fx-text-fill: white;");
-        button.setOnMouseEntered(e -> button.setStyle(
-                "-fx-background-color: " + hoverBg + "; -fx-text-fill: white;"));
-        button.setOnMouseExited(e -> button.setStyle(
-                "-fx-background-color: " + normalBg + "; -fx-text-fill: white;"));
-    }
-
     public CreateEventPage(EventCsvService eventService, AppUser currentUser) {
         this.eventService = eventService;
         this.currentUser = currentUser;
@@ -65,34 +53,8 @@ public class CreateEventPage {
     public Node getView() {
         // Check if user is logged in - redirect to login if not
         if (currentUser == null || currentUser.getId() == null || currentUser.getId() <= 0) {
-            ThemeManager theme = ThemeManager.getInstance();
-
-            VBox loginPrompt = new VBox(20);
-            loginPrompt.setAlignment(Pos.CENTER);
-            loginPrompt.setPadding(new Insets(50));
-
-            theme.applyBackground(loginPrompt);
-
-            if (navigate != null) {
-                loginPrompt.getChildren().add(new com.example.frontend.components.NavBar(navigate));
-            }
-
-            Label message = new Label("Please log in to create events");
-            message.setStyle("-fx-font-size: 18px; -fx-text-fill: #555;");
-
-            Button loginBtn = new Button("Go to Login");
-            loginBtn.setStyle("-fx-font-size: 14px; -fx-padding: 10 30;");
-            themeSolidButton(loginBtn, theme.getButtonColor(), theme.getHoverButtonColor());
-            loginBtn.setOnAction(e -> {
-                if (navigate != null)
-                    navigate.accept("/login");
-            });
-
-            VBox content = new VBox(20, message, loginBtn);
-            content.setAlignment(Pos.CENTER);
-            loginPrompt.getChildren().add(content);
-
-            return loginPrompt;
+            return new LoginRequiredPage(navigate, "Please log in to create events", "/login", "Go to Login")
+                    .getView();
         }
 
         ScrollPane scrollPane = new ScrollPane();

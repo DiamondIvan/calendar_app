@@ -69,8 +69,17 @@ public class App extends Application {
                 scene.setRoot(createThemedRoot(calendarPage.getView(), theme));
                 break;
             case "/create-event":
-                CreateEventPage createEventPage = new CreateEventPage(eventService, currentUser, this::navigate);
-                scene.setRoot(createThemedRoot(createEventPage.getView(), theme));
+                if (currentUser == null || currentUser.getId() == null || currentUser.getId() <= 0) {
+                    LoginRequiredPage loginRequiredPage = new LoginRequiredPage(
+                            this::navigate,
+                            "Please log in to create events",
+                            "/login",
+                            "Go to Login");
+                    scene.setRoot(createThemedRoot(loginRequiredPage.getView(), theme));
+                } else {
+                    CreateEventPage createEventPage = new CreateEventPage(eventService, currentUser, this::navigate);
+                    scene.setRoot(createThemedRoot(createEventPage.getView(), theme));
+                }
                 break;
             case "/statistics":
                 StatisticsPage statsPage = new StatisticsPage(this::navigate, eventService, currentUser);
