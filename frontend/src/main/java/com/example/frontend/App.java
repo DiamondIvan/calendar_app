@@ -1,11 +1,14 @@
 package com.example.frontend;
 
 import com.example.frontend.model.AppUser;
+import com.example.frontend.context.ThemeManager;
 import com.example.frontend.pages.*;
 import com.example.frontend.service.EventCsvService;
 import com.example.frontend.service.UserCsvService;
 import javafx.application.Application;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -43,6 +46,8 @@ public class App extends Application {
         if (scene == null)
             return;
 
+        ThemeManager theme = ThemeManager.getInstance();
+
         switch (route) {
             case "/logout":
                 // Clear session and redirect to login
@@ -51,33 +56,33 @@ public class App extends Application {
                 break;
             case "/login":
                 LoginPage loginPage = new LoginPage(this::navigate, userService, this);
-                scene.setRoot(new StackPane(loginPage.getView()));
+                scene.setRoot(createThemedRoot(loginPage.getView(), theme));
                 break;
             case "/":
             case "/home":
                 // Home page is now creating accessible without a user
                 HomePage homePage = new HomePage(this::navigate, currentUser);
-                scene.setRoot(new StackPane(homePage.getView()));
+                scene.setRoot(createThemedRoot(homePage.getView(), theme));
                 break;
             case "/calendar":
                 CalendarPage calendarPage = new CalendarPage(this::navigate, eventService, currentUser);
-                scene.setRoot(new StackPane(calendarPage.getView()));
+                scene.setRoot(createThemedRoot(calendarPage.getView(), theme));
                 break;
             case "/create-event":
                 CreateEventPage createEventPage = new CreateEventPage(eventService, currentUser, this::navigate);
-                scene.setRoot(new StackPane(createEventPage.getView()));
+                scene.setRoot(createThemedRoot(createEventPage.getView(), theme));
                 break;
             case "/statistics":
                 StatisticsPage statsPage = new StatisticsPage(this::navigate);
-                scene.setRoot(new StackPane(statsPage.getView()));
+                scene.setRoot(createThemedRoot(statsPage.getView(), theme));
                 break;
             case "/backup-restore":
                 BackupRestorePage backupPage = new BackupRestorePage(this::navigate);
-                scene.setRoot(new StackPane(backupPage.getView()));
+                scene.setRoot(createThemedRoot(backupPage.getView(), theme));
                 break;
             case "/about":
                 AboutPage aboutPage = new AboutPage(this::navigate);
-                scene.setRoot(new StackPane(aboutPage.getView()));
+                scene.setRoot(createThemedRoot(aboutPage.getView(), theme));
                 break;
             default:
                 System.out.println("Unknown route: " + route);
@@ -88,6 +93,15 @@ public class App extends Application {
                     navigate("/login");
                 break;
         }
+    }
+
+    private StackPane createThemedRoot(Node pageView, ThemeManager theme) {
+        StackPane wrapper = new StackPane(pageView);
+        theme.applyBackground(wrapper);
+        if (pageView instanceof Region region) {
+            theme.applyBackground(region);
+        }
+        return wrapper;
     }
 
     public static void main(String[] args) {

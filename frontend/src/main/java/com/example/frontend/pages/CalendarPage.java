@@ -13,6 +13,7 @@ import com.example.frontend.service.EventCsvService;
 import com.example.frontend.model.AppUser;
 import com.example.frontend.model.CalendarEvent;
 import com.example.frontend.model.Event;
+import com.example.frontend.context.ThemeManager;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -86,6 +87,8 @@ public class CalendarPage {
             String buttonColor,
             String hoverButtonColor,
             String backgroundGradient) {
+        ThemeManager.getInstance().setScheme(userSelectedColor, buttonColor, hoverButtonColor, backgroundGradient);
+
         // 1. Change Main Background with gradient
         mainContainer.setStyle("-fx-background-color: " + backgroundGradient + ";");
 
@@ -260,8 +263,10 @@ public class CalendarPage {
         // Left Sidebar (Card) - Pass mainContainer to control background
         VBox leftSidebar = createLeftSidebar(mainContainer);
 
-        // Apply default theme on first load (matches first scheme)
-        applyTheme(mainContainer, "#90caf9", "#4285f4", "#2f6fe0", "linear-gradient(to right, #e2e2e2, #c9d6ff)");
+        // Apply persisted theme on first load
+        ThemeManager theme = ThemeManager.getInstance();
+        applyTheme(mainContainer, theme.getUserSelectedColor(), theme.getButtonColor(), theme.getHoverButtonColor(),
+                theme.getBackgroundGradient());
 
         // Right Calendar Area (Card)
         VBox calendarCard = new VBox();
