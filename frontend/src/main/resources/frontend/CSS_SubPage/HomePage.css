@@ -1,116 +1,118 @@
 /* Root Container - The Green Background */
 .root-container {
-    -fx-background-color: #d1e7dd; /* Light Green */
-    background-color: #d1e7dd;
-    -fx-padding: 30;
-    padding: 30px;
+  -fx-background-color: #d1e7dd; /* Light Green */
+  background-color: #d1e7dd;
+  -fx-padding: 25;
+  padding: 25px;
 }
 
 /* The Main White Card in the center */
 .main-white-card {
-    -fx-background-color: white;
-    background-color: white;
-    -fx-background-radius: 40px;
-    border-radius: 40px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 20, 0, 0, 5);
-    /* Adjust padding to keep content away from rounded corners */
-    -fx-padding: 10;
-    padding: 10px; 
+  -fx-background-color: white;
+  background-color: white;
+  -fx-background-radius: 40px;
+  border-radius: 40px;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 20, 0, 0, 5);
+  -fx-max-width: 1050;
+  max-width: 1050px;
+  -fx-pref-width: 1050;
+  /* Adjust padding to keep content away from rounded corners */
+  -fx-padding: 10;
+  padding: 10px;
 }
 
 /* Navigation Icons Styles */
 .nav-icon-btn {
-    -fx-background-color: transparent;
-    background-color: transparent;
-    -fx-font-size: 24px;
-    font-size: 24px;
-    -fx-text-fill: #555;
-    -fx-cursor: hand;
-    cursor: pointer;
+  -fx-background-color: transparent;
+  background-color: transparent;
+  -fx-font-size: 24px;
+  font-size: 24px;
+  -fx-text-fill: #555;
+  -fx-cursor: hand;
+  cursor: pointer;
 }
 .nav-icon-btn:hover {
-    -fx-text-fill: #333;
-    -fx-scale-x: 1.1;
-    -fx-scale-y: 1.1;
+  -fx-text-fill: #333;
+  -fx-scale-x: 1.1;
+  -fx-scale-y: 1.1;
 }
 
 .nav-toggle-btn {
-    -fx-background-color: transparent;
-    background-color: transparent;
-    -fx-font-size: 14px;
-    font-size: 14px;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-text-fill: #333;
-    -fx-border-color: #333;
-    border-color: #333;
-    -fx-border-radius: 20px;
-    border-radius: 20px;
-    -fx-border-width: 2px;
-    border-width: 2px;
-    -fx-cursor: hand;
-    cursor: pointer;
+  -fx-background-color: transparent;
+  background-color: transparent;
+  -fx-font-size: 14px;
+  font-size: 14px;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: #333;
+  -fx-border-color: #333;
+  border-color: #333;
+  -fx-border-radius: 20px;
+  border-radius: 20px;
+  -fx-border-width: 2px;
+  border-width: 2px;
+  -fx-cursor: hand;
+  cursor: pointer;
 }
 
 /* Header Text */
 .home-title {
-    -fx-font-size: 3em; 
-    font-size: 3em;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-text-fill: #2c2c2c;
-    -fx-font-family: "Arial";
-    font-family: "Arial", sans-serif;
+  -fx-font-size: 3em;
+  font-size: 3em;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: #2c2c2c;
+  -fx-font-family: "Arial";
+  font-family: "Arial", sans-serif;
 }
 
 .home-subtitle {
-    -fx-font-size: 1.2em;
-    font-size: 1.2em;
-    -fx-text-fill: #777;
-    -fx-padding: 0 0 10 0;
-    padding: 0 0 10px 0;
+  -fx-font-size: 1.2em;
+  font-size: 1.2em;
+  -fx-text-fill: #777;
+  -fx-padding: 0 0 10 0;
+  padding: 0 0 10px 0;
 }
 
 /* User Section */
 .user-name {
-    -fx-font-size: 1.2em;
-    font-size: 1.2em;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-text-fill: #333;
+  -fx-font-size: 1.2em;
+  font-size: 1.2em;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: #333;
 }
 
 .logout-btn {
-    -fx-background-color: #ff6b6b; /* Salmon red */
-    background-color: #ff6b6b;
-    -fx-text-fill: white;
-    -fx-background-radius: 20px;
-    border-radius: 20px;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-font-size: 14px;
-    font-size: 14px;
-    -fx-padding: 8 20 8 20;
-    padding: 8px 20px 8px 20px;
-    -fx-cursor: hand;
-    cursor: pointer;
+  -fx-background-color: #ff6b6b; /* Salmon red */
+  background-color: #ff6b6b;
+  -fx-text-fill: white;
+  -fx-background-radius: 20px;
+  border-radius: 20px;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-font-size: 14px;
+  font-size: 14px;
+  -fx-padding: 8 20 8 20;
+  padding: 8px 20px 8px 20px;
+  -fx-cursor: hand;
+  cursor: pointer;
 }
 .logout-btn:hover {
-    -fx-background-color: #ff5252;
-    background-color: #ff5252;
+  -fx-background-color: #ff5252;
+  background-color: #ff5252;
 }
 
 /* Cards Grid */
 .home-cards {
-    -fx-alignment: center;
-    -fx-padding: 20;
-    padding: 20px;
-    -fx-pref-width: 1000px;
+  -fx-alignment: center;
+  -fx-padding: 16;
+  padding: 16px;
 }
 
 /* Individual Card Styling */
 .card {
-    -fx-background-color: white; /* Card on white background needs border or shadow to pop? 
+  -fx-background-color: white; /* Card on white background needs border or shadow to pop? 
                                     Actually in the picture, the main container is white, 
                                     and cards are also white BUT they have a shadow 
                                     Wait, looking closer at Picture 2:
@@ -118,42 +120,42 @@
                                     and border slightly distinguishing them, 
                                     OR they are just spaced clearly. 
                                     Let's add a subtle border or shadow. */
-    background-color: white;
-    -fx-background-radius: 15px;
-    -fx-border-radius: 15px;
-    border-radius: 15px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 2);
-    -fx-padding: 20;
-    padding: 20px;
-    -fx-alignment: top-center;
-    -fx-pref-width: 260;
-    -fx-pref-height: 140;
-    -fx-spacing: 10;
-    -fx-cursor: hand;
-    cursor: pointer;
-    -fx-border-color: #f0f0f0;
-    border-color: #f0f0f0;
-    -fx-border-width: 1px;
-    border-width: 1px;
+  background-color: white;
+  -fx-background-radius: 15px;
+  -fx-border-radius: 15px;
+  border-radius: 15px;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 10, 0, 0, 2);
+  -fx-padding: 22;
+  padding: 22px;
+  -fx-alignment: top-center;
+  -fx-pref-width: 250;
+  -fx-pref-height: 140;
+  -fx-spacing: 10;
+  -fx-cursor: hand;
+  cursor: pointer;
+  -fx-border-color: #f0f0f0;
+  border-color: #f0f0f0;
+  -fx-border-width: 1px;
+  border-width: 1px;
 }
 
 .card:hover {
-    -fx-translate-y: -5;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 5);
+  -fx-translate-y: -5;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 15, 0, 0, 5);
 }
 
 .card-title {
-    -fx-font-size: 1.4em;
-    font-size: 1.4em;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-text-fill: #007bff; /* Blue */
+  -fx-font-size: 1.6em;
+  font-size: 1.6em;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: #007bff; /* Blue */
 }
 
 .card-desc {
-    -fx-font-size: 0.9em;
-    font-size: 0.9em;
-    -fx-text-fill: #666;
-    -fx-text-alignment: center;
-    -fx-wrap-text: true;
+  -fx-font-size: 1em;
+  font-size: 1em;
+  -fx-text-fill: #666;
+  -fx-text-alignment: center;
+  -fx-wrap-text: true;
 }

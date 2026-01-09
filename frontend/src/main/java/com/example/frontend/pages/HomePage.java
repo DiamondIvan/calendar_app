@@ -6,7 +6,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -75,19 +75,19 @@ public class HomePage {
         }
 
         // Cards Grid
-        FlowPane cardsContainer = new FlowPane();
-        cardsContainer.setHgap(30);
-        cardsContainer.setVgap(30);
+        GridPane cardsContainer = new GridPane();
+        cardsContainer.setHgap(24);
+        cardsContainer.setVgap(24);
         cardsContainer.setAlignment(Pos.CENTER);
         cardsContainer.getStyleClass().add("home-cards");
 
-        // Add cards with matching descriptions
-        addCard(cardsContainer, "Calendar", "Check your schedule and plan your days efficiently.", "/calendar");
-        addCard(cardsContainer, "Login", "Sign in or create a new account to access your dashboard.", "/login");
-        addCard(cardsContainer, "About", "Learn more about the features of this application.", "/about");
-        addCard(cardsContainer, "Statistics", "View and update your personal information.", "/statistics");
-        addCard(cardsContainer, "Settings", "Adjust your preferences and configure the app.", "/settings");
-        addCard(cardsContainer, "Backup & Restore", "Backup your calendar or Restore calendar.", "/backup-restore");
+        // Fixed 3x2 matrix
+        addCard(cardsContainer, 0, "Calendar", "Check your schedule and plan your days efficiently.", "/calendar");
+        addCard(cardsContainer, 1, "Login", "Sign in or create a new account to access your dashboard.", "/login");
+        addCard(cardsContainer, 2, "About", "Learn more about the features of this application.", "/about");
+        addCard(cardsContainer, 3, "Statistics", "View and update your personal information.", "/statistics");
+        addCard(cardsContainer, 4, "Settings", "Adjust your preferences and configure the app.", "/settings");
+        addCard(cardsContainer, 5, "Backup & Restore", "Backup your calendar or Restore calendar.", "/backup-restore");
 
         centerContent.getChildren().addAll(headerBox, userSection, cardsContainer);
         mainCard.setCenter(centerContent);
@@ -100,7 +100,7 @@ public class HomePage {
         return new com.example.frontend.components.NavBar(navigate);
     }
 
-    private void addCard(FlowPane parent, String title, String desc, String route) {
+    private void addCard(GridPane parent, int index, String title, String desc, String route) {
         VBox card = new VBox(10);
         card.getStyleClass().add("card");
         card.setOnMouseClicked(e -> navigate.accept(route));
@@ -113,7 +113,9 @@ public class HomePage {
         d.getStyleClass().add("card-desc");
 
         card.getChildren().addAll(t, d);
-        parent.getChildren().add(card);
+        int col = index % 3;
+        int row = index / 3;
+        parent.add(card, col, row);
     }
 
     private void handleLogout() {
