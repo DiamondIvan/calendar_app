@@ -139,16 +139,11 @@ public class CalendarPage {
         } catch (Exception e) {
         }
 
-        // --- NavBar ---
+        // --- NavBar (at the very top) ---
         com.example.frontend.components.NavBar navBar = new com.example.frontend.components.NavBar(navigate);
 
         // --- 1. Top Header Bar ---
         HBox headerBar = createHeaderBar();
-
-        // Join navbar and header? or just stack them?
-        // User said "Top-Left", so putting it at the very top.
-        // mainContainer is VBox, so just add it first.
-        mainContainer.getChildren().add(navBar);
 
         // --- 2. Content Area (Sidebar + Calendar) ---
         HBox contentArea = new HBox(30);
@@ -172,7 +167,8 @@ public class CalendarPage {
 
         contentArea.getChildren().addAll(leftSidebar, calendarCard);
 
-        mainContainer.getChildren().addAll(headerBar, contentArea);
+        // Add all components: NavBar first, then header, then content
+        mainContainer.getChildren().addAll(navBar, headerBar, contentArea);
 
         updateCalendar();
 

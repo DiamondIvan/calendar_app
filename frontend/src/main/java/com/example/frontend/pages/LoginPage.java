@@ -103,18 +103,22 @@ public class LoginPage {
         signUpForm.setVisible(false); // Optimization: Hide what's covered
         signInForm.setVisible(true);
 
-        // Wrapper to center the card in the center region
-        StackPane centerWrapper = new StackPane(mainContainer);
+        // --- NavBar (aligned with left side of signin container) ---
+        com.example.frontend.components.NavBar navBar = new com.example.frontend.components.NavBar(navigate);
+        HBox navBarContainer = new HBox(navBar);
+        navBarContainer.setAlignment(Pos.CENTER_LEFT);
+        navBarContainer.setPrefWidth(CONTAINER_WIDTH);
+        navBarContainer.setPadding(new Insets(0, 0, 0, 165)); // top, right, bottom, left - adjust as needed
+
+        // Wrapper with NavBar above the main container
+        VBox contentWithNav = new VBox(10);
+        contentWithNav.setAlignment(Pos.CENTER);
+        contentWithNav.getChildren().addAll(navBarContainer, mainContainer);
+
+        StackPane centerWrapper = new StackPane(contentWithNav);
         centerWrapper.setAlignment(Pos.CENTER);
 
         outerRoot.setCenter(centerWrapper);
-
-        // --- NavBar ---
-        // Add to top
-        if (navigate != null) {
-            com.example.frontend.components.NavBar navBar = new com.example.frontend.components.NavBar(navigate);
-            outerRoot.setTop(navBar);
-        }
 
         return outerRoot;
     }
