@@ -175,8 +175,8 @@ public class AboutPage {
                                 createTeamMember("mak-jia-hng.jpg", "Mak Jia Hng", ""),
                                 createTeamMember("tiew.jpg", "Tiew Yi Nuo", ""),
                                 createTeamMember("fong.jpg", "Fong Jun Toh", "(Group Leader)"),
-                                createTeamMember("photo_2026-01-06_23-04-20.jpg", "Tan Ke Qin", ""),
-                                createTeamMember("photo_ngpenghan_31102025.jpeg.jpg", "Ng Peng Han", ""));
+                                createTeamMember("angel.jpg", "Tan Ke Qin", ""),
+                                createTeamMember("penghan.jpg", "Ng Peng Han", ""));
 
                 // --- 6. ALL FEATURES (Program List) ---
                 VBox featuresSection = new VBox(20);

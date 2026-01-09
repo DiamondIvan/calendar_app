@@ -3,7 +3,10 @@ package com.example.frontend.components;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import java.io.InputStream;
 import java.util.function.Consumer;
 
 public class NavBar extends HBox {
@@ -22,18 +25,35 @@ public class NavBar extends HBox {
         this.setPickOnBounds(false);
 
         // Buttons
-        Button homeBtn = createNavButton("🏠", "/");
-        Button calBtn = createNavButton("📅", "/calendar");
-        Button loginBtn = createNavButton("🔒", "/login");
-        Button statsBtn = createNavButton("📊", "/statistics");
+        Button homeBtn = createNavButton("home.png", "/");
+        Button calBtn = createNavButton("calender1.png", "/calendar");
+        Button loginBtn = createNavButton("login.png", "/login");
+        Button statsBtn = createNavButton("bar-chart.png", "/statistics");
 
         this.getChildren().addAll(homeBtn, calBtn, loginBtn, statsBtn);
     }
 
-    private Button createNavButton(String text, String route) {
-        Button btn = new Button(text);
+    private Button createNavButton(String iconFileName, String route) {
+        Button btn = new Button();
         btn.getStyleClass().add("nav-icon-btn");
-        btn.setStyle("-fx-font-size: 20px; -fx-background-color: transparent; -fx-cursor: hand;");
+        btn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+
+        // Load icon image
+        try {
+            InputStream is = getClass().getResourceAsStream("/frontend/public/" + iconFileName);
+            if (is != null) {
+                Image img = new Image(is);
+                ImageView iv = new ImageView(img);
+                iv.setFitWidth(40);
+                iv.setFitHeight(40);
+                iv.setPreserveRatio(true);
+                btn.setGraphic(iv);
+            }
+        } catch (Exception e) {
+            // Fallback to text if image not found
+            btn.setText("•");
+        }
+
         btn.setOnAction(e -> {
             if (navigate != null) {
                 navigate.accept(route);
