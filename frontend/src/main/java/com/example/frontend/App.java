@@ -93,6 +93,10 @@ public class App extends Application {
                 AboutPage aboutPage = new AboutPage(this::navigate);
                 scene.setRoot(createThemedRoot(aboutPage.getView(), theme));
                 break;
+            case "/settings":
+                SettingsPage settingsPage = new SettingsPage(this::navigate, currentUser);
+                scene.setRoot(createThemedRoot(settingsPage.getView(), theme));
+                break;
             default:
                 System.out.println("Unknown route: " + route);
                 // Fallback to home or login
