@@ -1,13 +1,13 @@
 package com.example.frontend.model;
 
 public enum Category {
-    PROFESSIONAL("PROFESSIONAL", "Professional & Work", "#2196F3"), // Blue
-    PERSONAL("PERSONAL", "Personal & Lifestyle", "#4CAF50"), // Green
-    HEALTH("HEALTH", "Health", "#E91E63"), // Pink
-    EDUCATION("EDUCATION", "Education", "#9C27B0"), // Purple
-    SOCIAL("SOCIAL", "Social & Entertainment", "#FF9800"), // Orange
-    FINANCE("FINANCE", "Finance", "#607D8B"), // Blue Grey
-    HOLIDAY("HOLIDAY", "Holiday & Events", "#F44336"); // Red
+    PROFESSIONAL("PROFESSIONAL", "Professional & Work", "#F44336"), // Red
+    PERSONAL("PERSONAL", "Personal & Lifestyle", "#FF9800"), // Orange
+    HEALTH("HEALTH", "Health", "#FFEB3B"), // Yellow
+    EDUCATION("EDUCATION", "Education", "#4CAF50"), // Green
+    SOCIAL("SOCIAL", "Social & Entertainment", "#2196F3"), // Blue
+    FINANCE("FINANCE", "Finance", "#3F51B5"), // Indigo
+    HOLIDAY("HOLIDAY", "Holiday & Events", "#9C27B0"); // Violet
 
     private final String id;
     private final String name;

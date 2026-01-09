@@ -49,8 +49,115 @@ public class CalendarPage {
     private Rectangle sideColorBox; // Promoted to field for referencing
     private Button catBtn; // Promoted to field
     private Button createBtn; // Promoted to field
+    private Button prevBtn;
+    private Button nextBtn;
 
     // Side Panel Components
+
+    private static String toHex(Color color) {
+        int r = (int) Math.round(color.getRed() * 255);
+        int g = (int) Math.round(color.getGreen() * 255);
+        int b = (int) Math.round(color.getBlue() * 255);
+        return String.format("#%02X%02X%02X", r, g, b);
+    }
+
+    private static void setInlineTextFill(Label label, Color color) {
+        if (label == null) {
+            return;
+        }
+        String existing = label.getStyle();
+        String fillStyle = "-fx-text-fill: " + toHex(color) + ";";
+
+        if (existing == null || existing.isBlank()) {
+            label.setStyle(fillStyle);
+            return;
+        }
+
+        if (existing.contains("-fx-text-fill")) {
+            label.setStyle(existing.replaceAll("-fx-text-fill\\s*:\\s*[^;]+;", fillStyle));
+        } else {
+            label.setStyle(existing + " " + fillStyle);
+        }
+    }
+
+    private void applyTheme(
+            VBox mainContainer,
+            String userSelectedColor,
+            String buttonColor,
+            String hoverButtonColor,
+            String backgroundGradient) {
+        // 1. Change Main Background with gradient
+        mainContainer.setStyle("-fx-background-color: " + backgroundGradient + ";");
+
+        // 2. Change Large Sidebar Box
+        if (sideColorBox != null) {
+            sideColorBox.setFill(Color.web(userSelectedColor));
+        }
+
+        // 3. Change Sidebar Text Color
+        Color sidebarTextColor = Color.web(buttonColor);
+        setInlineTextFill(sideCurrentDateNum, sidebarTextColor);
+        setInlineTextFill(sideCurrentMonth, sidebarTextColor);
+        setInlineTextFill(sideCurrentYear, sidebarTextColor);
+
+        // 4. Change Buttons (and borders) with hover effects
+        // Override the CSS `.green-btn` border by setting inline border styles.
+        String outlineStyle = "-fx-background-color: white;"
+                + " -fx-text-fill: " + buttonColor + ";"
+                + " -fx-border-color: " + buttonColor + ";"
+                + " -fx-border-width: 1px;"
+                + " -fx-border-radius: 5px;"
+                + " -fx-background-radius: 5px;"
+                + " -fx-cursor: hand;";
+
+        String outlineHoverStyle = "-fx-background-color: " + hoverButtonColor + ";"
+                + " -fx-text-fill: white;"
+                + " -fx-border-color: " + hoverButtonColor + ";"
+                + " -fx-border-width: 1px;"
+                + " -fx-border-radius: 5px;"
+                + " -fx-background-radius: 5px;"
+                + " -fx-cursor: hand;";
+
+        String filledStyle = "-fx-background-color: " + buttonColor + ";"
+                + " -fx-text-fill: white;"
+                + " -fx-border-color: " + buttonColor + ";"
+                + " -fx-border-width: 1px;"
+                + " -fx-border-radius: 5px;"
+                + " -fx-background-radius: 5px;"
+                + " -fx-cursor: hand;";
+
+        String filledHoverStyle = "-fx-background-color: " + hoverButtonColor + ";"
+                + " -fx-text-fill: white;"
+                + " -fx-border-color: " + hoverButtonColor + ";"
+                + " -fx-border-width: 1px;"
+                + " -fx-border-radius: 5px;"
+                + " -fx-background-radius: 5px;"
+                + " -fx-cursor: hand;";
+
+        if (prevBtn != null) {
+            prevBtn.setStyle(outlineStyle);
+            prevBtn.setOnMouseEntered(evt -> prevBtn.setStyle(outlineHoverStyle));
+            prevBtn.setOnMouseExited(evt -> prevBtn.setStyle(outlineStyle));
+        }
+
+        if (nextBtn != null) {
+            nextBtn.setStyle(outlineStyle);
+            nextBtn.setOnMouseEntered(evt -> nextBtn.setStyle(outlineHoverStyle));
+            nextBtn.setOnMouseExited(evt -> nextBtn.setStyle(outlineStyle));
+        }
+
+        if (catBtn != null) {
+            catBtn.setStyle(outlineStyle);
+            catBtn.setOnMouseEntered(evt -> catBtn.setStyle(outlineHoverStyle));
+            catBtn.setOnMouseExited(evt -> catBtn.setStyle(outlineStyle));
+        }
+
+        if (createBtn != null) {
+            createBtn.setStyle(filledStyle);
+            createBtn.setOnMouseEntered(evt -> createBtn.setStyle(filledHoverStyle));
+            createBtn.setOnMouseExited(evt -> createBtn.setStyle(filledStyle));
+        }
+    }
 
     public CalendarPage(Consumer<String> navigate, EventCsvService eventService, AppUser currentUser) {
         this.navigate = navigate;
@@ -129,9 +236,10 @@ public class CalendarPage {
     }
 
     public Node getView() {
-        // Main Container (Green Background)
+        // Main Container with default gradient background
         VBox mainContainer = new VBox(20);
         mainContainer.getStyleClass().add("main-container");
+        mainContainer.setPadding(new Insets(20, 40, 20, 40)); // Add padding to show background
 
         try {
             mainContainer.getStylesheets()
@@ -151,6 +259,9 @@ public class CalendarPage {
 
         // Left Sidebar (Card) - Pass mainContainer to control background
         VBox leftSidebar = createLeftSidebar(mainContainer);
+
+        // Apply default theme on first load (matches first scheme)
+        applyTheme(mainContainer, "#90caf9", "#4285f4", "#2f6fe0", "linear-gradient(to right, #e2e2e2, #c9d6ff)");
 
         // Right Calendar Area (Card)
         VBox calendarCard = new VBox();
@@ -181,7 +292,7 @@ public class CalendarPage {
         header.setPadding(new Insets(10, 0, 10, 0));
 
         // Prev Button
-        Button prevBtn = new Button("< Prev");
+        prevBtn = new Button("< Prev");
         prevBtn.getStyleClass().addAll("action-btn", "green-btn");
         prevBtn.setOnAction(e -> {
             currentYearMonth = currentYearMonth.minusMonths(1);
@@ -193,7 +304,7 @@ public class CalendarPage {
         monthYearLabel.getStyleClass().add("header-month-label");
 
         // Next Button
-        Button nextBtn = new Button("Next >");
+        nextBtn = new Button("Next >");
         nextBtn.getStyleClass().addAll("action-btn", "green-btn");
         nextBtn.setOnAction(e -> {
             currentYearMonth = currentYearMonth.plusMonths(1);
@@ -249,7 +360,7 @@ public class CalendarPage {
         sideCurrentYear.getStyleClass().add("sidebar-year");
 
         // Large Color Box
-        sideColorBox = new Rectangle(100, 100, Color.web("#C8E6C9")); // Default light green
+        sideColorBox = new Rectangle(100, 100, Color.web("#90caf9")); // Default light blue
         sideColorBox.setArcWidth(20);
         sideColorBox.setArcHeight(20);
 
@@ -260,34 +371,32 @@ public class CalendarPage {
         legend.setAlignment(Pos.CENTER);
         legend.setPadding(new Insets(20, 0, 0, 0));
 
-        String[] colors = { "#FFF59D", "#FFCC80", "#FFAB91", "#C5E1A5", "#CE93D8", "#F48FB1", "#90CAF9", "#81D4FA" };
-        for (String c : colors) {
-            Rectangle r = new Rectangle(30, 30, Color.web(c));
+        // Color schemes: [user-selected-color, button-color, hover-button-color,
+        // background-gradient]
+        String[][] colorSchemes = {
+                { "#90caf9", "#4285f4", "#2f6fe0", "linear-gradient(to right, #e2e2e2, #c9d6ff)" },
+                { "#ffcc80", "#fb8c00", "#ef6c00", "linear-gradient(to right, #fff3e0, #ffe0b2)" },
+                { "#f8bbd0", "#ec407a", "#d81b60", "linear-gradient(to right, #fce4ec, #f8bbd0)" },
+                { "#c8e6c9", "#43a047", "#2e7d32", "linear-gradient(to right, #e8f5e9, #c8e6c9)" },
+                { "#d1c4e9", "#7e57c2", "#5e35b1", "linear-gradient(to right, #ede7f6, #d1c4e9)" },
+                { "#ef9a9a", "#e53935", "#c62828", "linear-gradient(to right, #ffebee, #ef9a9a)" },
+                { "#b3e5fc", "#039be5", "#0277bd", "linear-gradient(to right, #e1f5fe, #b3e5fc)" }
+        };
+
+        for (String[] scheme : colorSchemes) {
+            String userSelectedColor = scheme[0];
+            String buttonColor = scheme[1];
+            String hoverButtonColor = scheme[2];
+            String backgroundGradient = scheme[3];
+
+            Rectangle r = new Rectangle(30, 30, Color.web(userSelectedColor));
             r.setArcWidth(10);
             r.setArcHeight(10);
             r.setCursor(javafx.scene.Cursor.HAND);
 
             // Interaction: Change Background on Click
             r.setOnMouseClicked(e -> {
-                // 1. Change Main Background
-                mainContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, " + c + ", #FFFFFF);");
-
-                // 2. Change Large Sidebar Box
-                sideColorBox.setFill(Color.web(c));
-
-                // 3. Change Sidebar Text Color (Darker shade for readability or just matching)
-                // Just matching the interaction for now. Or keep black. User said "number also
-                // want to change".
-                // Assuming user implies the color matching the theme.
-                sideCurrentDateNum.setTextFill(Color.web(c).darker());
-                sideCurrentMonth.setTextFill(Color.web(c).darker());
-                sideCurrentYear.setTextFill(Color.web(c).darker());
-
-                // 4. Change Buttons Background
-                String btnStyle = "-fx-background-color: " + c
-                        + "; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand;";
-                catBtn.setStyle(btnStyle);
-                createBtn.setStyle(btnStyle);
+                applyTheme(mainContainer, userSelectedColor, buttonColor, hoverButtonColor, backgroundGradient);
             });
 
             legend.getChildren().add(r);
