@@ -11,10 +11,10 @@ import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
 import java.io.InputStream;
 import java.util.function.Consumer;
+import com.example.frontend.components.NavBar;
 
 public class AboutPage {
 
-        @SuppressWarnings("unused")
         private final Consumer<String> navigate;
 
         public AboutPage(Consumer<String> navigate) {
@@ -22,6 +22,9 @@ public class AboutPage {
         }
 
         public Node getView() {
+                // Create Navigation Bar
+                NavBar navBar = new NavBar(navigate);
+
                 ScrollPane scrollPane = new ScrollPane();
                 scrollPane.setFitToWidth(true);
                 scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
@@ -45,11 +48,33 @@ public class AboutPage {
                 } catch (Exception e) {
                 }
 
+                // Add navbar at the top of content
+                contentWrapper.getChildren().add(navBar);
+
+                // --- HERO SECTION ---
+                VBox heroSection = new VBox(20);
+                heroSection.setAlignment(Pos.CENTER);
+                heroSection.setPadding(new Insets(64, 0, 64, 0));
+
+                Label heroTitle = new Label("Calendar & Scheduler App");
+                heroTitle.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+                Button viewObjectiveBtn = new Button("VIEW PROBLEM STATEMENT");
+                viewObjectiveBtn.setStyle("-fx-background-color: #4e73df; -fx-text-fill: white; -fx-font-size: 16px; " +
+                                "-fx-padding: 12 24; -fx-background-radius: 5; -fx-cursor: hand;");
+                viewObjectiveBtn.setOnMouseEntered(e -> viewObjectiveBtn.setStyle(
+                                "-fx-background-color: #3f5fb6; -fx-text-fill: white; -fx-font-size: 16px; " +
+                                                "-fx-padding: 12 24; -fx-background-radius: 5; -fx-cursor: hand;"));
+                viewObjectiveBtn.setOnMouseExited(e -> viewObjectiveBtn.setStyle(
+                                "-fx-background-color: #4e73df; -fx-text-fill: white; -fx-font-size: 16px; " +
+                                                "-fx-padding: 12 24; -fx-background-radius: 5; -fx-cursor: hand;"));
+                viewObjectiveBtn.setOnAction(e -> showProblemStatementModal());
+
+                heroSection.getChildren().addAll(heroTitle, viewObjectiveBtn);
+
                 // --- 1. INFOGRAPHIC CARDS (Top Row) ---
-                FlowPane featuresFeatures = new FlowPane();
+                HBox featuresFeatures = new HBox(25);
                 featuresFeatures.setAlignment(Pos.CENTER);
-                featuresFeatures.setHgap(25);
-                featuresFeatures.setVgap(25);
                 // Set padding to separate from top
                 featuresFeatures.setPadding(new Insets(0, 0, 30, 0));
 
@@ -182,42 +207,144 @@ public class AboutPage {
                 VBox featuresSection = new VBox(20);
                 featuresSection.getStyleClass().add("features-section");
                 featuresSection.setMaxWidth(1000);
+                featuresSection.setAlignment(Pos.CENTER);
 
                 Label featTitle = new Label("All Features");
                 featTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333;");
                 Label featSub = new Label("A comprehensive suite of tools to manage your schedule efficiently.");
+                featSub.setStyle("-fx-text-fill: #666;");
 
-                FlowPane featGrid = new FlowPane();
+                // Container for the grid with padding
+                VBox gridContainer = new VBox(20);
+                gridContainer.setPadding(new Insets(20));
+                gridContainer.setAlignment(Pos.CENTER);
+
+                GridPane featGrid = new GridPane();
                 featGrid.setHgap(20);
                 featGrid.setVgap(20);
                 featGrid.setAlignment(Pos.CENTER);
 
-                featGrid.getChildren().addAll(
-                                createFeatureCard("1. App Launch",
-                                                "When the user runs the program, the system loads data and displays the main menu options."),
-                                createFeatureCard("2. Create Event",
-                                                "Allows users to create new events by entering title, description, start time, and end time."),
-                                createFeatureCard("3. View Calendar",
-                                                "Displays events in either a weekly list view or a monthly calendar view."),
-                                createFeatureCard("4. Update or Delete Event",
-                                                "Users can update event details or delete events using the event ID."),
-                                createFeatureCard("5. Search Event",
-                                                "Search for events by specific date or date range. Quickly find matches."),
-                                createFeatureCard("6. Backup and Restore",
-                                                "Back up all event data to a file for safekeeping, or restore data from a backup."),
-                                createFeatureCard("7. Exit Application",
-                                                "Safely exit the application. All data is automatically saved before closing."),
-                                createFeatureCard("8. Optional Features",
-                                                "Enhanced functionality including reminders, conflict detection, and statistics."));
+                // Add feature cards in a 2-column grid
+                featGrid.add(createFeatureCard("1. App Launch",
+                                "When the user runs the program, the system loads data and displays the main menu options."),
+                                0, 0);
+                featGrid.add(createFeatureCard("2. Create Event",
+                                "Allows users to create new events by entering title, description, start time, and end time."),
+                                1, 0);
+                featGrid.add(createFeatureCard("3. View Calendar",
+                                "Displays events in either a weekly list view or a monthly calendar view."), 0, 1);
+                featGrid.add(createFeatureCard("4. Update or Delete Event",
+                                "Users can update event details or delete events using the event ID."), 1, 1);
+                featGrid.add(createFeatureCard("5. Search Event",
+                                "Search for events by specific date or date range. Quickly find matches."), 0, 2);
+                featGrid.add(createFeatureCard("6. Backup and Restore",
+                                "Back up all event data to a file for safekeeping, or restore data from a backup."), 1,
+                                2);
+                featGrid.add(createFeatureCard("7. Exit Application",
+                                "Safely exit the application. All data is automatically saved before closing."), 0, 3);
+                featGrid.add(createFeatureCard("8. Optional Features",
+                                "Enhanced functionality including reminders, conflict detection, and statistics."), 1,
+                                3);
 
-                featuresSection.getChildren().addAll(featTitle, featSub, featGrid);
+                gridContainer.getChildren().add(featGrid);
+                featuresSection.getChildren().addAll(featTitle, featSub, gridContainer);
 
-                // Combine All
+                // --- 7. MARKS DISTRIBUTION SECTION ---
+                VBox marksSection = new VBox(20);
+                marksSection.setAlignment(Pos.CENTER);
+                marksSection.setPadding(new Insets(40, 20, 40, 20));
+                marksSection.setMaxWidth(1200);
+
+                Label marksTitle = new Label("MARKS DISTRIBUTION");
+                marksTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
+                Label marksSub = new Label("Breakdown of the 12 Marks Available");
+                marksSub.setStyle("-fx-text-fill: #666; -fx-font-size: 14px;");
+
+                HBox marksCards = new HBox(25);
+                marksCards.setAlignment(Pos.CENTER);
+
+                // Card 1: Basic Requirements
+                VBox basicCard = createMarksCard(
+                                "Basic Requirements",
+                                null,
+                                new String[] { "Event Creation (1m)", "Update & Delete (1m)", "Recurring Events (1m)",
+                                                "Backup & Restore (1m)" },
+                                "8 Marks",
+                                "Total Basic",
+                                "#4e73df");
+
+                // Card 2: Tech Stack
+                VBox techCard = createMarksCard(
+                                "Tech Stack",
+                                null,
+                                new String[] { "Language: Java", "Concept: OOP Principles", "Storage: File I/O (CSV)",
+                                                "Collaboration: Git/GitHub" },
+                                "Essential",
+                                "Programming Skills",
+                                "#36b9cc");
+
+                // Card 3: Extra Features
+                VBox extraCard = createMarksCard(
+                                "Extra Features",
+                                null,
+                                new String[] { "Reminders (1m)", "Adv. Search (1m)", "Statistics (1m)",
+                                                "GUI / Conflict Detect (1m)" },
+                                "4 Marks",
+                                "Maximum Extra",
+                                "#1cc88a");
+
+                marksCards.getChildren().addAll(basicCard, techCard, extraCard);
+                marksSection.getChildren().addAll(marksTitle, marksSub, marksCards);
+
+                // --- 8. CONTACT SECTION ---
+                VBox contactSection = new VBox(15);
+                contactSection.setAlignment(Pos.CENTER);
+                contactSection.setPadding(new Insets(40, 20, 40, 20));
+                contactSection.setStyle("-fx-background-color: #f8f9fc;");
+
+                Label contactHeader = new Label("Contact Instructor");
+                contactHeader.setStyle(
+                                "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333; -fx-border-color: #1cc88a; -fx-border-width: 0 0 2 0; -fx-padding: 0 0 5 0;");
+
+                Label contactName = new Label("Fong Jun Toh");
+                contactName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+                Label contactDesc = new Label("For any questions or clarifications.");
+                contactDesc.setStyle("-fx-text-fill: #666;");
+
+                Label contactLocation = new Label("📍 Faculty of Computer Science");
+                contactLocation.setStyle("-fx-text-fill: #1cc88a; -fx-font-size: 14px;");
+
+                Label contactPhone = new Label("📞 019-5187978");
+                contactPhone.setStyle("-fx-text-fill: #1cc88a; -fx-font-size: 14px;");
+
+                Label contactEmail = new Label("✉ JunToh123@gmail.com");
+                contactEmail.setStyle("-fx-text-fill: #1cc88a; -fx-font-size: 14px;");
+
+                contactSection.getChildren().addAll(contactHeader, contactName, contactDesc, contactLocation,
+                                contactPhone, contactEmail);
+
+                // --- 9. FOOTER ---
+                VBox footer = new VBox(10);
+                footer.setAlignment(Pos.CENTER);
+                footer.setPadding(new Insets(30, 20, 30, 20));
+                footer.setStyle("-fx-background-color: #2c3e50;");
+
+                Label footerText = new Label("FOP Group Assignment 2025/26");
+                footerText.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+
+                footer.getChildren().add(footerText);
+
+                // Add remaining sections (navbar already added at top)
                 contentWrapper.getChildren().addAll(
+                                heroSection,
                                 featuresFeatures,
                                 dsSection,
                                 teamTitle, teamSub, teamBox,
-                                featuresSection);
+                                featuresSection,
+                                marksSection,
+                                contactSection,
+                                footer);
 
                 rootStack.getChildren().add(contentWrapper);
                 scrollPane.setContent(rootStack);
@@ -300,11 +427,11 @@ public class AboutPage {
 
                 // Container for uniform circular image
                 StackPane imgContainer = new StackPane();
-                imgContainer.setPrefSize(100, 100);
-                imgContainer.setMaxSize(100, 100);
-                imgContainer.setMinSize(100, 100);
-                // Circular Clip - Correctly centered at (50,50)
-                Circle clip = new Circle(50, 50, 50);
+                imgContainer.setPrefSize(150, 150);
+                imgContainer.setMaxSize(150, 150);
+                imgContainer.setMinSize(150, 150);
+                // Circular Clip - Correctly centered at (75,75)
+                Circle clip = new Circle(75, 75, 75);
                 imgContainer.setClip(clip);
 
                 ImageView iv = new ImageView();
@@ -316,11 +443,11 @@ public class AboutPage {
                                 Image img = new Image(is);
                                 iv.setImage(img);
 
-                                // "Cover" logic: ensure the image fills the 100x100 circle
+                                // "Cover" logic: ensure the image fills the 150x150 circle
                                 if (img.getWidth() > img.getHeight()) {
-                                        iv.setFitHeight(100);
+                                        iv.setFitHeight(150);
                                 } else {
-                                        iv.setFitWidth(100);
+                                        iv.setFitWidth(150);
                                 }
                         }
                 } catch (Exception e) {
@@ -329,7 +456,7 @@ public class AboutPage {
 
                 // If image failed to load, show a colored circle
                 if (iv.getImage() == null) {
-                        Circle placeholder = new Circle(50, Color.LIGHTGRAY);
+                        Circle placeholder = new Circle(75, Color.LIGHTGRAY);
                         box.getChildren().add(placeholder);
                 } else {
                         imgContainer.getChildren().add(iv);
@@ -350,14 +477,131 @@ public class AboutPage {
                 return box;
         }
 
+        // Helper: Marks Distribution Card
+        private VBox createMarksCard(String title, String buttonText, String[] items, String totalLabel,
+                        String totalDesc, String accentColor) {
+                VBox card = new VBox();
+                card.setAlignment(Pos.TOP_CENTER);
+                card.setStyle(
+                                "-fx-background-color: white; -fx-border-color: #E0E0E0; -fx-border-width: 1; -fx-border-radius: 5; -fx-background-radius: 5;");
+                card.setPrefWidth(320);
+
+                // Header
+                VBox header = new VBox(10);
+                header.setAlignment(Pos.CENTER);
+                header.setPadding(new Insets(20));
+                header.setStyle("-fx-background-color: " + accentColor
+                                + "; -fx-background-radius: 5 5 0 0; -fx-border-radius: 5 5 0 0;");
+
+                Label headerTitle = new Label(title);
+                headerTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
+
+                header.getChildren().add(headerTitle);
+
+                // Only add button if buttonText is provided
+                if (buttonText != null && !buttonText.isEmpty()) {
+                        Button headerBtn = new Button(buttonText);
+                        headerBtn.setStyle(
+                                        "-fx-background-color: #1cc88a; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 5; -fx-cursor: hand;");
+                        headerBtn.setOnMouseEntered(e -> headerBtn.setStyle(
+                                        "-fx-background-color: #17a673; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 5; -fx-cursor: hand;"));
+                        headerBtn.setOnMouseExited(e -> headerBtn.setStyle(
+                                        "-fx-background-color: #1cc88a; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 5; -fx-cursor: hand;"));
+                        header.getChildren().add(headerBtn);
+                }
+
+                // Items
+                VBox itemsBox = new VBox();
+                for (String item : items) {
+                        Label itemLabel = new Label(item);
+                        itemLabel.setStyle("-fx-text-fill: #333; -fx-font-size: 13px;");
+                        itemLabel.setPadding(new Insets(12, 16, 12, 16));
+                        itemLabel.setMaxWidth(Double.MAX_VALUE);
+                        itemLabel.setAlignment(Pos.CENTER);
+                        itemsBox.getChildren().add(itemLabel);
+                }
+
+                // Total
+                VBox totalBox = new VBox(5);
+                totalBox.setAlignment(Pos.CENTER);
+                totalBox.setPadding(new Insets(20));
+
+                Label totalLbl = new Label(totalLabel);
+                totalLbl.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+                Label totalDescLbl = new Label(totalDesc);
+                totalDescLbl.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+
+                totalBox.getChildren().addAll(totalLbl, totalDescLbl);
+
+                card.getChildren().addAll(header, itemsBox, totalBox);
+                return card;
+        }
+
+        private void showProblemStatementModal() {
+                Alert modal = new Alert(Alert.AlertType.NONE);
+                modal.setTitle("Project Objective");
+
+                VBox content = new VBox(15);
+                content.setPadding(new Insets(20));
+                content.setStyle("-fx-background-color: white;");
+
+                Label header = new Label("Project Objective");
+                header.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+                Label subheader = new Label("Optimize Limited Daytime ⏰");
+                subheader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #4e73df;");
+
+                Label desc1 = new Label(
+                                "Time management is essential. This app organizes time and commitments in a legible way.");
+                desc1.setWrapText(true);
+                desc1.setStyle("-fx-text-fill: #555;");
+
+                Label coreTask = new Label(
+                                "Core Task: Build a Calendar and Scheduler App for personal use using Java (OOP, File I/O).");
+                coreTask.setWrapText(true);
+                coreTask.setStyle("-fx-font-weight: bold; -fx-text-fill: #333;");
+
+                Label constraint = new Label(
+                                "Constraint: No databases allowed. Must use local .csv files (event.csv, recurrent.csv).");
+                constraint.setWrapText(true);
+                constraint.setStyle("-fx-font-weight: bold; -fx-text-fill: #333;");
+
+                Label footer = new Label("Assignment Topic 2");
+                footer.setStyle("-fx-text-fill: #777; -fx-font-style: italic;");
+
+                content.getChildren().addAll(header, subheader, desc1, coreTask, constraint, footer);
+
+                modal.getDialogPane().setContent(content);
+                modal.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+                modal.showAndWait();
+        }
+
         // Helper: Feature List Card
         private VBox createFeatureCard(String title, String desc) {
                 VBox card = new VBox(8);
                 card.getStyleClass().add("feature-list-card");
+                card.setPrefWidth(350);
+                card.setMinHeight(100);
+                card.setAlignment(Pos.TOP_LEFT);
+                card.setPadding(new Insets(20));
+                card.setStyle("-fx-background-color: white; " +
+                                "-fx-background-radius: 10; " +
+                                "-fx-border-color: #E0E0E0; " +
+                                "-fx-border-radius: 10; " +
+                                "-fx-border-width: 1; " +
+                                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 2);");
+
                 Label t = new Label(title);
                 t.getStyleClass().add("feature-list-title");
+                t.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
                 Label d = new Label(desc);
                 d.getStyleClass().add("feature-list-desc");
+                d.setWrapText(true);
+                d.setStyle("-fx-text-fill: #555; -fx-font-size: 13px;");
+
                 card.getChildren().addAll(t, d);
                 return card;
         }
