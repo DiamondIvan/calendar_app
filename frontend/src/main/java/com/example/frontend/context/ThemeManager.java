@@ -85,4 +85,29 @@ public class ThemeManager {
             region.setStyle(existing + " " + fillStyle);
         }
     }
+
+    /**
+     * Returns the LoginPage primary/secondary colors for the current Calendar
+     * sidebar selection.
+     * Index 0 = primary, index 1 = secondary.
+     */
+    public String[] getLoginPageColors() {
+        String key = getUserSelectedColor();
+        if (key == null) {
+            return new String[] { getButtonColor(), getHoverButtonColor() };
+        }
+
+        String normalized = key.trim().toLowerCase();
+        return switch (normalized) {
+            case "#90caf9" -> new String[] { "#5c6bc0", "#512da8" };
+            case "#ffcc80" -> new String[] { "#fb8c00", "#ef6c00" };
+            case "#f8bbd0" -> new String[] { "#ec407a", "#ad1457" };
+            case "#c8e6c9" -> new String[] { "#43a047", "#1b5e20" };
+            case "#d1c4e9" -> new String[] { "#7e57c2", "#4527a0" };
+            case "#ef9a9a" -> new String[] { "#e53935", "#b71c1c" };
+            case "#b3e5fc" -> new String[] { "#039be5", "#01579b" };
+            case "#ffffff" -> new String[] { "#607d8b", "#37474f" };
+            default -> new String[] { getButtonColor(), getHoverButtonColor() };
+        };
+    }
 }

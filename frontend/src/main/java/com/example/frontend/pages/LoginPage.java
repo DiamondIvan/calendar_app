@@ -1,7 +1,9 @@
 package com.example.frontend.pages;
 
 import com.example.frontend.App;
+import com.example.frontend.context.ThemeManager;
 import javafx.animation.TranslateTransition;
+import javafx.animation.Interpolator;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -25,12 +27,16 @@ public class LoginPage {
     private VBox signInForm;
     private VBox signUpForm;
 
+    private Button signInBtn;
+    private Button signUpBtn;
+
     // Config
     private final double CONTAINER_WIDTH = 900;
     private final double CONTAINER_HEIGHT = 600;
-    private final double OVERLAY_WIDTH = CONTAINER_WIDTH * 0.4; // 40% width
+    private final double OVERLAY_WIDTH = CONTAINER_WIDTH * 0.45; // 45% width
 
     private boolean isSignInActive = true;
+    private boolean isAnimating = false;
 
     public LoginPage(Consumer<String> navigate, UserCsvService userService, App app) {
         this.navigate = navigate;
@@ -74,8 +80,10 @@ public class LoginPage {
         overlayPane.getStyleClass().add("overlay-pane");
         overlayPane.setPrefSize(OVERLAY_WIDTH, CONTAINER_HEIGHT);
 
-        overlayPane.setLayoutX(CONTAINER_WIDTH - OVERLAY_WIDTH); // Start at Right
+        // Keep layout fixed and animate via translateX for smoother transitions.
+        overlayPane.setLayoutX(0);
         overlayPane.setLayoutY(0);
+        overlayPane.setTranslateX(CONTAINER_WIDTH - OVERLAY_WIDTH); // Start at Right
 
         // Overlay Content
         overlayContentRight = createOverlayContent("Hello, Friend!",
@@ -103,12 +111,13 @@ public class LoginPage {
         signUpForm.setVisible(false); // Optimization: Hide what's covered
         signInForm.setVisible(true);
 
-        // --- NavBar (aligned with left side of signin container) ---
+        // --- NavBar (centered above the login card) ---
         com.example.frontend.components.NavBar navBar = new com.example.frontend.components.NavBar(navigate);
-        HBox navBarContainer = new HBox(navBar);
-        navBarContainer.setAlignment(Pos.CENTER_LEFT);
+        // NavBar defaults to CENTER_LEFT; on the login page we want the icons centered.
+        navBar.setAlignment(Pos.CENTER);
+        StackPane navBarContainer = new StackPane(navBar);
         navBarContainer.setPrefWidth(CONTAINER_WIDTH);
-        navBarContainer.setPadding(new Insets(0, 0, 0, 165)); // top, right, bottom, left - adjust as needed
+        StackPane.setAlignment(navBar, Pos.CENTER);
 
         // Wrapper with NavBar above the main container
         VBox contentWithNav = new VBox(10);
@@ -120,31 +129,67 @@ public class LoginPage {
 
         outerRoot.setCenter(centerWrapper);
 
+        applyLoginScheme(outerRoot);
+
         return outerRoot;
     }
 
+    private void applyLoginScheme(BorderPane outerRoot) {
+        ThemeManager themeManager = ThemeManager.getInstance();
+
+        // Keep global background consistent with the selected Calendar theme
+        themeManager.applyBackground(outerRoot);
+
+        String[] loginColors = themeManager.getLoginPageColors();
+        String primary = loginColors[0];
+        String secondary = loginColors[1];
+
+        if (overlayPane != null) {
+            overlayPane.setStyle("-fx-background-color: linear-gradient(to bottom right, " + primary + ", " + secondary
+                    + ");");
+        }
+
+        themeSolidButton(signInBtn, primary, secondary);
+        themeSolidButton(signUpBtn, primary, secondary);
+    }
+
+    private void themeSolidButton(Button button, String normalBg, String hoverBg) {
+        if (button == null) {
+            return;
+        }
+
+        button.setStyle("-fx-background-color: " + normalBg + "; -fx-text-fill: white;");
+        button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: " + hoverBg + "; -fx-text-fill: white;"));
+        button.setOnMouseExited(e -> button.setStyle("-fx-background-color: " + normalBg + "; -fx-text-fill: white;"));
+    }
+
     private void toggleMode() {
-        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.5), overlayPane);
+        if (isAnimating) {
+            return;
+        }
+        isAnimating = true;
+
+        TranslateTransition transition = new TranslateTransition(Duration.millis(650), overlayPane);
+        transition.setInterpolator(Interpolator.EASE_BOTH);
 
         if (isSignInActive) {
             // Variable Change
             isSignInActive = false;
 
             // Move Overlay to Left
-            transition.setToX(-(CONTAINER_WIDTH - OVERLAY_WIDTH));
+            transition.setToX(0);
+
+            // Hide overlay text during transition; show the new state on finish
+            overlayContentRight.setVisible(false);
+            overlayContentLeft.setVisible(false);
 
             transition.setOnFinished(e -> {
-                // Update internal state if needed
-                overlayPane.setLayoutX(0);
-                overlayPane.setTranslateX(0);
+                overlayContentRight.setVisible(false);
+                overlayContentLeft.setVisible(true);
+                signInForm.setVisible(false);
+                signUpForm.setVisible(true);
+                isAnimating = false;
             });
-
-            // Swap Content Visibility
-            overlayContentRight.setVisible(false);
-            overlayContentLeft.setVisible(true);
-
-            signInForm.setVisible(false);
-            signUpForm.setVisible(true);
 
         } else {
             // Switch to Sign In Mode
@@ -153,16 +198,17 @@ public class LoginPage {
             // Move Overlay to Right
             transition.setToX(CONTAINER_WIDTH - OVERLAY_WIDTH);
 
-            transition.setOnFinished(e -> {
-                overlayPane.setLayoutX(CONTAINER_WIDTH - OVERLAY_WIDTH);
-                overlayPane.setTranslateX(0);
-            });
-
-            overlayContentRight.setVisible(true);
+            // Hide overlay text during transition; show the new state on finish
+            overlayContentRight.setVisible(false);
             overlayContentLeft.setVisible(false);
 
-            signInForm.setVisible(true);
-            signUpForm.setVisible(false);
+            transition.setOnFinished(e -> {
+                overlayContentRight.setVisible(true);
+                overlayContentLeft.setVisible(false);
+                signInForm.setVisible(true);
+                signUpForm.setVisible(false);
+                isAnimating = false;
+            });
         }
 
         transition.play();
@@ -193,7 +239,7 @@ public class LoginPage {
         Label forgot = new Label("Forget Your Password?");
         forgot.getStyleClass().add("forgot-text");
 
-        Button signInBtn = new Button("SIGN IN");
+        signInBtn = new Button("SIGN IN");
         signInBtn.getStyleClass().add("action-btn");
         signInBtn.setOnAction(e -> handleSignIn(emailField.getText(), passField.getText()));
 
@@ -230,7 +276,7 @@ public class LoginPage {
         passField.setPromptText("Password");
         passField.getStyleClass().add("input-field");
 
-        Button signUpBtn = new Button("SIGN UP");
+        signUpBtn = new Button("SIGN UP");
         signUpBtn.getStyleClass().add("action-btn");
         signUpBtn.setOnAction(e -> handleSignUp(nameField.getText(), emailField.getText(), passField.getText()));
 

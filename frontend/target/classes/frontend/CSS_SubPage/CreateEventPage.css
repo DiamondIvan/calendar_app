@@ -1,11 +1,13 @@
 .root {
-    -fx-font-family: "Montserrat", sans-serif;
-    font-family: "Montserrat", sans-serif;
-    -fx-background-color: linear-gradient(to right, #e2e2e2, #c9d6ff);
-    background-color: linear-gradient(to right, #e2e2e2, #c9d6ff);
+  -fx-font-family: "Montserrat", sans-serif;
+  font-family: "Montserrat", sans-serif;
+  -fx-background-color: linear-gradient(to right, #e2e2e2, #c9d6ff);
+  background-color: linear-gradient(to right, #e2e2e2, #c9d6ff);
 }
 
 .event-container {
+  -create-accent-color: #512da8;
+  -create-accent-hover-color: #6345c0;
   -fx-background-color: #fff;
   background-color: #fff;
   -fx-background-radius: 25;
@@ -23,31 +25,34 @@
   font-size: 28px;
   -fx-font-weight: bold;
   font-weight: bold;
-  -fx-text-fill: #512da8;
+  -fx-text-fill: -create-accent-color;
   -fx-alignment: center;
 }
 
 .section-title {
-   -fx-font-size: 20px;
-   font-size: 20px;
-   -fx-font-weight: bold;
-   font-weight: bold;
-   -fx-text-fill: #512da8;
-   -fx-padding: 20 0 10 0;
-   padding: 20px 0 10px 0;
+  -fx-font-size: 20px;
+  font-size: 20px;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: -create-accent-color;
+  -fx-padding: 20 0 10 0;
+  padding: 20px 0 10px 0;
 }
 
 .event-label {
-   -fx-font-size: 14px;
-   font-size: 14px;
-   -fx-font-weight: bold;
-   font-weight: bold;
-   -fx-text-fill: #444;
-   -fx-padding: 10 0 5 0;
-   padding: 10px 0 5px 0;
+  -fx-font-size: 14px;
+  font-size: 14px;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: #444;
+  -fx-padding: 10 0 5 0;
+  padding: 10px 0 5px 0;
 }
 
-.text-field, .text-area, .combo-box, .date-picker {
+.text-field,
+.text-area,
+.combo-box,
+.date-picker {
   -fx-background-color: #eee;
   background-color: #eee;
   -fx-background-radius: 10;
@@ -60,66 +65,68 @@
   border-color: transparent;
 }
 
-.text-field:focused, .text-area:focused, .combo-box:focused, .date-picker:focused {
+.text-field:focused,
+.text-area:focused,
+.combo-box:focused,
+.date-picker:focused {
   -fx-background-color: #f5f5f5;
   background-color: #f5f5f5;
-  -fx-border-color: #512da8;
+  -fx-border-color: -create-accent-color;
   border-color: #512da8;
   -fx-border-radius: 10;
   border-radius: 10px;
 }
 
 .button {
-    -fx-background-color: #512da8;
-    background-color: #512da8;
-    -fx-text-fill: #fff;
-    -fx-font-size: 14px;
-    font-size: 14px;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-padding: 12 40;
-    padding: 12px 40px;
-    -fx-background-radius: 10;
-    border-radius: 10px;
-    -fx-cursor: hand;
-    cursor: pointer;
+  -fx-background-color: -create-accent-color;
+  background-color: #512da8;
+  -fx-text-fill: #fff;
+  -fx-font-size: 14px;
+  font-size: 14px;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-padding: 12 40;
+  padding: 12px 40px;
+  -fx-background-radius: 10;
+  border-radius: 10px;
+  -fx-cursor: hand;
+  cursor: pointer;
 }
 
 .button:hover {
-    -fx-background-color: #6345c0;
-    background-color: #6345c0;
+  -fx-background-color: -create-accent-hover-color;
+  background-color: #6345c0;
 }
 
 .separator {
-    -fx-border-color: #ddd;
-    border-color: #ddd;
-    -fx-border-width: 1 0 0 0;
-    border-width: 1px 0 0 0;
-    -fx-padding: 10 0;
-    padding: 10px 0;
+  -fx-border-color: #ddd;
+  border-color: #ddd;
+  -fx-border-width: 1 0 0 0;
+  border-width: 1px 0 0 0;
+  -fx-padding: 10 0;
+  padding: 10px 0;
 }
 
-
 .back-button {
-    -fx-font-size: 24px;
-    font-size: 24px;
-    -fx-background-color: transparent;
-    background-color: transparent;
-    -fx-text-fill: #512da8;
-    color: #512da8;
-    -fx-cursor: hand;
-    cursor: pointer;
-    -fx-padding: 0 10 0 0;
-    padding: 0 10px 0 0;
-    -fx-border-color: transparent;
-    border-color: transparent;
+  -fx-font-size: 24px;
+  font-size: 24px;
+  -fx-background-color: transparent;
+  background-color: transparent;
+  -fx-text-fill: -create-accent-color;
+  color: #512da8;
+  -fx-cursor: hand;
+  cursor: pointer;
+  -fx-padding: 0 10 0 0;
+  padding: 0 10px 0 0;
+  -fx-border-color: transparent;
+  border-color: transparent;
 }
 
 .back-button:hover {
-    -fx-text-fill: #6345c0;
-    color: #6345c0;
-    -fx-background-color: #f0f0f0;
-    background-color: #f0f0f0;
-    -fx-background-radius: 50%;
-    border-radius: 50%;
+  -fx-text-fill: -create-accent-hover-color;
+  color: #6345c0;
+  -fx-background-color: #f0f0f0;
+  background-color: #f0f0f0;
+  -fx-background-radius: 50%;
+  border-radius: 50%;
 }
