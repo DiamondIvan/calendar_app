@@ -1,26 +1,29 @@
 package com.example.backend.service;
 
 import com.example.backend.model.AppUser;
+import com.example.backend.utils.BackendPaths;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 
 public class UserCsvService {
 
-    private final String csvPath = "backend/csvFiles/users.csv";
+    private final Path csvPath = BackendPaths.resolveBackendDir().resolve("csvFiles").resolve("users.csv");
 
     public UserCsvService() {
-        System.out.println("UserCsvService initialized. CSV Path: " + new File(csvPath).getAbsolutePath());
+        System.out.println("UserCsvService initialized. CSV Path: " + csvPath.toAbsolutePath());
         initializeCsv();
     }
 
     private void initializeCsv() {
-        File file = new File(csvPath);
+        File file = csvPath.toFile();
         File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
             parentDir.mkdirs();
         }
         if (!file.exists()) {
-            try (FileWriter fw = new FileWriter(file)) {
+            try (Writer fw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
                 fw.write("id,name,email,password\n");
             } catch (IOException e) {
                 System.out.println("Error initializing users CSV: " + e.getMessage());
@@ -31,7 +34,8 @@ public class UserCsvService {
     public List<AppUser> loadUsers() {
         List<AppUser> users = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new FileInputStream(csvPath.toFile()), StandardCharsets.UTF_8))) {
             String line;
             br.readLine(); // skip header
 
@@ -62,7 +66,8 @@ public class UserCsvService {
 
     public synchronized int getNextId() {
         int maxId = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new FileInputStream(csvPath.toFile()), StandardCharsets.UTF_8))) {
             String line;
             br.readLine(); // skip header
             while ((line = br.readLine()) != null) {
@@ -91,7 +96,7 @@ public class UserCsvService {
 
         ensureNewline();
 
-        try (FileWriter fw = new FileWriter(csvPath, true)) {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), true), StandardCharsets.UTF_8)) {
             String row = user.getId() + "," +
                     user.getName() + "," +
                     user.getEmail() + "," +
@@ -105,14 +110,15 @@ public class UserCsvService {
     }
 
     private void ensureNewline() {
-        File file = new File(csvPath);
+        File file = csvPath.toFile();
         if (!file.exists() || file.length() == 0)
             return;
 
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             raf.seek(file.length() - 1);
             if (raf.read() != '\n') {
-                try (FileWriter fw = new FileWriter(csvPath, true)) {
+                try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), true),
+                        StandardCharsets.UTF_8)) {
                     fw.write("\n");
                 } catch (IOException e) {
                     // ignore

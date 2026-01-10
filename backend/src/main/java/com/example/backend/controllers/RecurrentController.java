@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/recurrent")
-@CrossOrigin(origins = "*")
 public class RecurrentController {
 
     private final RecurrentCsvService recurrentService;

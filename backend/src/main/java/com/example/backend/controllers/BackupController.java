@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,11 +14,9 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/backup")
-@CrossOrigin(origins = "*")
 public class BackupController {
 
     private final BackupService backupService;
-    private static final String BACKUP_DIR = "backend/backups/";
 
     public BackupController() {
         this.backupService = new BackupService();
@@ -38,7 +37,7 @@ public class BackupController {
             response.put("message", "Backup created successfully");
             response.put("backupPath", backupPath);
             response.put("backupName", backupName);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Error creating backup: " + e.getMessage());
@@ -76,7 +75,7 @@ public class BackupController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            File backupDir = new File(BACKUP_DIR);
+            File backupDir = backupService.getBackupDirectory();
             List<Map<String, Object>> backups = new ArrayList<>();
 
             if (backupDir.exists() && backupDir.isDirectory()) {
@@ -108,11 +107,12 @@ public class BackupController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            backupName = Paths.get(backupName).getFileName().toString();
             if (!backupName.endsWith(".csv")) {
                 backupName += ".csv";
             }
 
-            File backupFile = new File(BACKUP_DIR + backupName);
+            File backupFile = new File(backupService.getBackupDirectory(), backupName);
             if (backupFile.exists()) {
                 if (backupFile.delete()) {
                     response.put("success", true);

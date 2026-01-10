@@ -1,0 +1,20 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.0)
+
+2026-01-10T11:15:07.186+08:00  INFO 30048 --- [backend] [           main] com.example.backend.BackendApplication   : Starting BackendApplication v0.0.1-SNAPSHOT using Java 25 with PID 30048 (C:\Users\junto\Documents\y1s1\calendar_app\backend\target\backend-0.0.1-SNAPSHOT.jar started by junto in C:\Users\junto\Documents\y1s1\calendar_app\backend)
+2026-01-10T11:15:07.192+08:00 DEBUG 30048 --- [backend] [           main] com.example.backend.BackendApplication   : Running with Spring Boot v4.0.0, Spring v7.0.1
+2026-01-10T11:15:07.195+08:00  INFO 30048 --- [backend] [           main] com.example.backend.BackendApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-01-10T11:15:08.268+08:00  INFO 30048 --- [backend] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-01-10T11:15:08.285+08:00  INFO 30048 --- [backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-10T11:15:08.286+08:00  INFO 30048 --- [backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.14]
+2026-01-10T11:15:08.307+08:00  INFO 30048 --- [backend] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1034 ms
+UserCsvService initialized. CSV Path: C:\Users\junto\Documents\y1s1\calendar_app\backend\csvFiles\users.csv
+2026-01-10T11:15:08.853+08:00  INFO 30048 --- [backend] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-01-10T11:15:08.871+08:00  INFO 30048 --- [backend] [           main] com.example.backend.BackendApplication   : Started BackendApplication in 2.135 seconds (process running for 3.031)

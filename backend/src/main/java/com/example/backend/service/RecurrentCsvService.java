@@ -1,25 +1,28 @@
 package com.example.backend.service;
 
 import com.example.backend.model.Event;
+import com.example.backend.utils.BackendPaths;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 
 public class RecurrentCsvService {
 
-    private final String CSV_PATH = "backend/csvFiles/recurrent.csv";
+    private final Path csvPath = BackendPaths.resolveBackendDir().resolve("csvFiles").resolve("recurrent.csv");
 
     public RecurrentCsvService() {
         initializeCsv();
     }
 
     private void initializeCsv() {
-        File file = new File(CSV_PATH);
+        File file = csvPath.toFile();
         File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
             parentDir.mkdirs();
         }
         if (!file.exists()) {
-            try (FileWriter fw = new FileWriter(file)) {
+            try (Writer fw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
                 fw.write("eventId,recurrentInterval,recurrentTimes,recurrentEndDate\n");
             } catch (IOException e) {
                 System.out.println("Error initializing recurrent CSV: " + e.getMessage());
@@ -30,7 +33,8 @@ public class RecurrentCsvService {
     public List<Event> loadRecurrentRules() {
         List<Event> recurrentRules = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new FileInputStream(csvPath.toFile()), StandardCharsets.UTF_8))) {
             String line;
             br.readLine(); // skip header
 
@@ -61,7 +65,7 @@ public class RecurrentCsvService {
 
     public void saveRecurrentRule(Event event) {
         ensureNewline();
-        try (FileWriter fw = new FileWriter(CSV_PATH, true)) {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), true), StandardCharsets.UTF_8)) {
             fw.write(
                     event.getId() + "," +
                             event.getRecurrentInterval() + "," +
@@ -74,14 +78,15 @@ public class RecurrentCsvService {
     }
 
     private void ensureNewline() {
-        File file = new File(CSV_PATH);
+        File file = csvPath.toFile();
         if (!file.exists() || file.length() == 0)
             return;
 
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             raf.seek(file.length() - 1);
             if (raf.read() != '\n') {
-                try (FileWriter fw = new FileWriter(CSV_PATH, true)) {
+                try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), true),
+                        StandardCharsets.UTF_8)) {
                     fw.write("\n");
                 } catch (IOException e) {
                 }
@@ -118,7 +123,8 @@ public class RecurrentCsvService {
     }
 
     private void rewriteCsv(List<Event> rules) {
-        try (FileWriter fw = new FileWriter(CSV_PATH)) {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), false),
+                StandardCharsets.UTF_8)) {
             fw.write("eventId,recurrentInterval,recurrentTimes,recurrentEndDate\n");
             for (Event event : rules) {
                 fw.write(

@@ -1,26 +1,29 @@
 package com.example.backend.service;
 
 import com.example.backend.model.Event;
+import com.example.backend.utils.BackendPaths;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.time.LocalDateTime;
 
 public class EventCsvService {
 
-    private final String CSV_PATH = "backend/csvFiles/events.csv";
+    private final Path csvPath = BackendPaths.resolveBackendDir().resolve("csvFiles").resolve("events.csv");
 
     public EventCsvService() {
         initializeCsv();
     }
 
     private void initializeCsv() {
-        File file = new File(CSV_PATH);
+        File file = csvPath.toFile();
         File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
             parentDir.mkdirs();
         }
         if (!file.exists()) {
-            try (FileWriter fw = new FileWriter(file)) {
+            try (Writer fw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
                 fw.write("id,userId,title,description,startDateTime,endDateTime,category\n");
             } catch (IOException e) {
                 System.out.println("Error initializing events CSV: " + e.getMessage());
@@ -31,7 +34,8 @@ public class EventCsvService {
     public List<Event> loadEvents() {
         List<Event> events = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new FileInputStream(csvPath.toFile()), StandardCharsets.UTF_8))) {
             String line;
             br.readLine(); // skip header
 
@@ -74,7 +78,8 @@ public class EventCsvService {
 
     public synchronized int getNextId() {
         int maxId = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new FileInputStream(csvPath.toFile()), StandardCharsets.UTF_8))) {
             String line;
             br.readLine(); // skip header
             while ((line = br.readLine()) != null) {
@@ -101,7 +106,7 @@ public class EventCsvService {
 
         ensureNewline();
 
-        try (FileWriter fw = new FileWriter(CSV_PATH, true)) {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), true), StandardCharsets.UTF_8)) {
             String category = event.getCategory() != null ? event.getCategory() : "PERSONAL";
             fw.write(
                     event.getId() + "," +
@@ -121,14 +126,15 @@ public class EventCsvService {
     }
 
     private void ensureNewline() {
-        File file = new File(CSV_PATH);
+        File file = csvPath.toFile();
         if (!file.exists() || file.length() == 0)
             return;
 
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             raf.seek(file.length() - 1);
             if (raf.read() != '\n') {
-                try (FileWriter fw = new FileWriter(CSV_PATH, true)) {
+                try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), true),
+                        StandardCharsets.UTF_8)) {
                     fw.write("\n");
                 } catch (IOException e) {
                 }
@@ -164,7 +170,8 @@ public class EventCsvService {
     }
 
     private void rewriteCsv(List<Event> events) {
-        try (FileWriter fw = new FileWriter(CSV_PATH)) {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), false),
+                StandardCharsets.UTF_8)) {
             fw.write("id,userId,title,description,startDateTime,endDateTime,category\n");
             for (Event event : events) {
                 String category = event.getCategory() != null ? event.getCategory() : "PERSONAL";

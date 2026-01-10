@@ -1,10 +1,21 @@
 package com.example.frontend.pages;
 
+import com.example.frontend.ApiService;
+import com.fasterxml.jackson.databind.JsonNode;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+
+import java.net.ConnectException;
+import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpTimeoutException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BackupRestorePage {
 
@@ -13,6 +24,11 @@ public class BackupRestorePage {
     private RadioButton replaceRadio;
     private RadioButton appendRadio;
     private Label messageLabel;
+
+    private Button backupBtn;
+    private Button restoreBtn;
+
+    private final ApiService apiService = new ApiService();
 
     private java.util.function.Consumer<String> navigate;
 
@@ -79,7 +95,7 @@ public class BackupRestorePage {
         backupNameField.setPromptText("e.g., my_backup");
         backupNameField.getStyleClass().add("text-field");
 
-        Button backupBtn = new Button("Create Backup");
+        backupBtn = new Button("Create Backup");
         backupBtn.getStyleClass().add("primary-btn");
         backupBtn.setOnAction(e -> handleBackup());
 
@@ -98,7 +114,7 @@ public class BackupRestorePage {
 
         restoreFileBox = new ComboBox<>();
         restoreFileBox.setPromptText("Select a file...");
-        restoreFileBox.getItems().addAll("backup_2026-01-01.csv", "backup_final.csv"); // Mock items
+        restoreFileBox.setDisable(true);
         restoreFileBox.setMaxWidth(Double.MAX_VALUE);
         restoreFileBox.getStyleClass().add("combo-box");
 
@@ -115,7 +131,7 @@ public class BackupRestorePage {
 
         HBox radioBox = new HBox(20, replaceRadio, appendRadio);
 
-        Button restoreBtn = new Button("Restore Data");
+        restoreBtn = new Button("Restore Data");
         restoreBtn.getStyleClass().add("primary-btn");
         restoreBtn.setOnAction(e -> handleRestore());
 
@@ -130,18 +146,49 @@ public class BackupRestorePage {
         content.getChildren().addAll(messageLabel, backupSection, restoreSection);
 
         root.setCenter(content);
+
+        refreshBackupList();
         return root;
     }
 
     private void handleBackup() {
-        // Mock Backup
-        String name = backupNameField.getText().isEmpty() ? "default_backup" : backupNameField.getText();
-        System.out.println("Backing up to: " + name);
+        String name = backupNameField.getText() == null ? "" : backupNameField.getText().trim();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("backupName", name);
 
-        showMessage("Backup created successfully: " + name + ".csv", true);
+        setBusy(true);
+        showMessage("Creating backup...", true);
 
-        // Add to list mock
-        restoreFileBox.getItems().add(name + ".csv");
+        Task<JsonNode> task = new Task<>() {
+            @Override
+            protected JsonNode call() throws Exception {
+                return apiService.postJson("/api/backup/create", payload);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            JsonNode response = task.getValue();
+            boolean success = response != null && response.path("success").asBoolean(false);
+            String msg = response == null
+                    ? "Backup failed."
+                    : response.path("message").asText(success ? "Backup created successfully" : "Backup failed");
+
+            showMessage(msg, success);
+            setBusy(false);
+            if (success) {
+                refreshBackupList();
+            }
+        });
+
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            showMessage(formatBackendError("Backup failed", ex), false);
+            setBusy(false);
+        });
+
+        Thread t = new Thread(task, "backup-create-task");
+        t.setDaemon(true);
+        t.start();
     }
 
     private void handleRestore() {
@@ -152,9 +199,102 @@ public class BackupRestorePage {
         }
 
         boolean append = appendRadio.isSelected();
-        System.out.println("Restoring from " + selected + " (Append: " + append + ")");
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("backupName", selected);
+        payload.put("append", append);
 
-        showMessage("Data restored successfully from " + selected, true);
+        setBusy(true);
+        showMessage("Restoring data...", true);
+
+        Task<JsonNode> task = new Task<>() {
+            @Override
+            protected JsonNode call() throws Exception {
+                return apiService.postJson("/api/backup/restore", payload);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            JsonNode response = task.getValue();
+            boolean success = response != null && response.path("success").asBoolean(false);
+            String msg = response == null
+                    ? "Restore failed."
+                    : response.path("message").asText(success ? "Backup restored successfully" : "Restore failed");
+            showMessage(msg, success);
+            setBusy(false);
+        });
+
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            showMessage(formatBackendError("Restore failed", ex), false);
+            setBusy(false);
+        });
+
+        Thread t = new Thread(task, "backup-restore-task");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void refreshBackupList() {
+        setBusy(true);
+        showMessage("Loading backups...", true);
+
+        Task<List<String>> task = new Task<>() {
+            @Override
+            protected List<String> call() throws Exception {
+                JsonNode response = apiService.getJson("/api/backup/list");
+                if (response == null || !response.path("success").asBoolean(false)) {
+                    String msg = response == null ? "Failed to list backups"
+                            : response.path("message").asText("Failed to list backups");
+                    throw new IllegalStateException(msg);
+                }
+
+                List<String> names = new ArrayList<>();
+                for (JsonNode backup : response.path("backups")) {
+                    String fileName = backup.path("name").asText("");
+                    if (!fileName.isBlank()) {
+                        names.add(fileName);
+                    }
+                }
+                return names;
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            List<String> names = task.getValue();
+            restoreFileBox.getItems().setAll(names);
+            restoreFileBox.setDisable(false);
+            setBusy(false);
+
+            if (names == null || names.isEmpty()) {
+                showMessage("No backups found yet.", true);
+            } else {
+                showMessage("Backups loaded.", true);
+            }
+        });
+
+        task.setOnFailed(e -> {
+            restoreFileBox.getItems().clear();
+            restoreFileBox.setDisable(false);
+            Throwable ex = task.getException();
+            showMessage(formatBackendError("Failed to load backups", ex), false);
+            setBusy(false);
+        });
+
+        Thread t = new Thread(task, "backup-list-task");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void setBusy(boolean busy) {
+        if (backupBtn != null) {
+            backupBtn.setDisable(busy);
+        }
+        if (restoreBtn != null) {
+            restoreBtn.setDisable(busy);
+        }
+        if (restoreFileBox != null && busy) {
+            restoreFileBox.setDisable(true);
+        }
     }
 
     private void showMessage(String msg, boolean success) {
@@ -162,5 +302,28 @@ public class BackupRestorePage {
         messageLabel.setVisible(true);
         messageLabel.getStyleClass().removeAll("success-message", "error-message");
         messageLabel.getStyleClass().add(success ? "success-message" : "error-message");
+    }
+
+    private String formatBackendError(String prefix, Throwable ex) {
+        if (ex == null) {
+            return prefix + ": Unknown error";
+        }
+
+        Throwable root = ex;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+
+        if (root instanceof ConnectException
+                || root instanceof HttpConnectTimeoutException
+                || root instanceof HttpTimeoutException) {
+            return prefix + ": Cannot reach backend at http://localhost:8080. Start the backend server and try again.";
+        }
+
+        String msg = root.getMessage();
+        if (msg == null || msg.isBlank()) {
+            msg = root.getClass().getSimpleName();
+        }
+        return prefix + ": " + msg;
     }
 }
