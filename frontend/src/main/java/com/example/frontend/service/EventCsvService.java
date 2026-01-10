@@ -138,92 +138,7 @@ public class EventCsvService {
             return new ArrayList<>();
         }
 
-        // Expand Recurrences
-        List<Event> allEvents = new ArrayList<>(baseEvents);
-        java.util.Map<Integer, java.util.Map<String, String>> rules = loadRecurrenceRules();
-
-        for (Event base : baseEvents) {
-            if (rules.containsKey(base.getId())) {
-                expandRecurrence(base, rules.get(base.getId()), allEvents);
-            }
-        }
-
-        return allEvents;
-    }
-
-    private java.util.Map<Integer, java.util.Map<String, String>> loadRecurrenceRules() {
-        java.util.Map<Integer, java.util.Map<String, String>> rules = new java.util.HashMap<>();
-        if (recurrentCsvPath == null)
-            return rules;
-        File file = new File(recurrentCsvPath);
-        if (!file.exists() || file.length() == 0)
-            return rules;
-
-        try (MappingIterator<java.util.Map<String, String>> it = mapper.readerFor(java.util.Map.class)
-                .with(recurrentSchema)
-                .readValues(file)) {
-            while (it.hasNext()) {
-                java.util.Map<String, String> row = it.next();
-                try {
-                    int eventId = Integer.parseInt(String.valueOf(row.get("eventId")));
-                    rules.put(eventId, row);
-                } catch (Exception e) {
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading Recurrent CSV: " + e.getMessage());
-        }
-        return rules;
-    }
-
-    private void expandRecurrence(Event base, java.util.Map<String, String> rule, List<Event> targetList) {
-        String intervalCode = rule.get("recurrentInterval");
-        String timesStr = rule.get("recurrentTimes");
-        // String endDateStr = rule.get("recurrentEndDate"); // Not used yet
-
-        int times = 0;
-        try {
-            if (timesStr != null && !timesStr.isEmpty()) {
-                times = Integer.parseInt(timesStr);
-            }
-        } catch (Exception e) {
-        }
-
-        if (intervalCode == null || "None".equalsIgnoreCase(intervalCode) || times <= 0)
-            return;
-
-        LocalDateTime currentStart = base.getStartDateTime();
-        LocalDateTime currentEnd = base.getEndDateTime();
-
-        for (int i = 1; i < times; i++) {
-            if (intervalCode.equals("1d")) {
-                currentStart = currentStart.plusDays(1);
-                currentEnd = currentEnd.plusDays(1);
-            } else if (intervalCode.equals("1w")) {
-                currentStart = currentStart.plusWeeks(1);
-                currentEnd = currentEnd.plusWeeks(1);
-            } else if (intervalCode.equals("1m")) {
-                currentStart = currentStart.plusMonths(1);
-                currentEnd = currentEnd.plusMonths(1);
-            } else if (intervalCode.equals("1y")) {
-                currentStart = currentStart.plusYears(1);
-                currentEnd = currentEnd.plusYears(1);
-            }
-
-            Event recurringEvent = new Event();
-            // Use same ID or negative? Logic usually implies unique ID for UI interactions.
-            // For display, unique ID is better. But linking back is hard.
-            // Let's generate a temporary unique ID hash or something.
-            recurringEvent.setId(base.getId() + (i * 100000)); // Hacky unique ID
-            recurringEvent.setUserId(base.getUserId());
-            recurringEvent.setTitle(base.getTitle());
-            recurringEvent.setDescription(base.getDescription());
-            recurringEvent.setCategory(base.getCategory());
-            recurringEvent.setStartDateTime(currentStart);
-            recurringEvent.setEndDateTime(currentEnd);
-
-            targetList.add(recurringEvent);
-        }
+        return baseEvents;
     }
 
     public synchronized int getNextId() {
@@ -399,13 +314,102 @@ public class EventCsvService {
         String intervalCode = baseEvent.getRecurrentInterval();
         String timesStr = baseEvent.getRecurrentTimes();
 
-        // Save original event first
-        saveEvent(baseEvent);
+        // Load existing events to determine IDs and append new ones
+        List<Event> validEvents = loadValidEventsForWriting();
+
+        int nextId = 0;
+        if (!validEvents.isEmpty()) {
+            nextId = validEvents.stream().mapToInt(Event::getId).max().orElse(0) + 1;
+        } else {
+            nextId = 1;
+        }
+
+        // Prepare Base Event
+        baseEvent.setId(nextId++);
+
+        // Basic Validation
+        if (baseEvent.getUserId() == 0 || baseEvent.getTitle() == null || baseEvent.getTitle().isEmpty()
+                || baseEvent.getStartDateTime() == null) {
+            System.err.println("ERROR: Invalid event data for recursion");
+            return;
+        }
+
+        validEvents.add(baseEvent);
 
         // Save recurrence meta if exists
-        if (intervalCode != null && !intervalCode.equals("None")) {
+        if (intervalCode != null && !intervalCode.equals("None") && !intervalCode.isEmpty()) {
             saveRecurrence(baseEvent.getId(), intervalCode, timesStr, baseEvent.getRecurrentEndDate());
+
+            int times = 0;
+            try {
+                if (timesStr != null && !timesStr.isEmpty()) {
+                    times = Integer.parseInt(timesStr);
+                }
+            } catch (NumberFormatException e) {
+            }
+
+            LocalDateTime endDate = null;
+            if (baseEvent.getRecurrentEndDate() != null && !baseEvent.getRecurrentEndDate().isEmpty()) {
+                try {
+                    endDate = java.time.LocalDate.parse(baseEvent.getRecurrentEndDate()).atStartOfDay().plusDays(1)
+                            .minusNanos(1);
+                } catch (Exception e) {
+                }
+            }
+
+            LocalDateTime currentStart = baseEvent.getStartDateTime();
+            LocalDateTime currentEnd = baseEvent.getEndDateTime();
+
+            int count = 1;
+            // Generate instances
+            while (true) {
+                if ("1d".equals(intervalCode)) {
+                    currentStart = currentStart.plusDays(1);
+                    if (currentEnd != null)
+                        currentEnd = currentEnd.plusDays(1);
+                } else if ("1w".equals(intervalCode)) {
+                    currentStart = currentStart.plusWeeks(1);
+                    if (currentEnd != null)
+                        currentEnd = currentEnd.plusWeeks(1);
+                } else if ("1m".equals(intervalCode)) {
+                    currentStart = currentStart.plusMonths(1);
+                    if (currentEnd != null)
+                        currentEnd = currentEnd.plusMonths(1);
+                } else if ("1y".equals(intervalCode)) {
+                    currentStart = currentStart.plusYears(1);
+                    if (currentEnd != null)
+                        currentEnd = currentEnd.plusYears(1);
+                } else {
+                    break;
+                }
+
+                if (endDate != null) {
+                    if (currentStart.isAfter(endDate))
+                        break;
+                } else if (times > 0) {
+                    count++;
+                    if (count > times)
+                        break;
+                } else {
+                    if (count++ > 50)
+                        break; // Default limit if no condition
+                }
+
+                Event newEvent = new Event();
+                newEvent.setId(nextId++);
+                newEvent.setUserId(baseEvent.getUserId());
+                newEvent.setTitle(baseEvent.getTitle());
+                newEvent.setDescription(baseEvent.getDescription());
+                newEvent.setCategory(baseEvent.getCategory());
+                newEvent.setStartDateTime(currentStart);
+                newEvent.setEndDateTime(currentEnd);
+
+                validEvents.add(newEvent);
+            }
         }
+
+        writeEventsToCsv(validEvents);
+        System.out.println("DEBUG: Generated recurring events. Total events saved: " + validEvents.size());
     }
 
     // Update an existing event

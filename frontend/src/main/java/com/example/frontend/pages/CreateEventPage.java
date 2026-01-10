@@ -30,7 +30,7 @@ public class CreateEventPage {
 
     // Recurrent
     private ComboBox<String> recurrentIntervalBox;
-    private TextField recurrentTimesField;
+    private Spinner<Integer> recurrentTimesSpinner;
     private DatePicker recurrentEndDatePicker;
 
     private Consumer<String> navigate;
@@ -182,9 +182,11 @@ public class CreateEventPage {
         Label recTimesLbl = new Label("Number of Occurrences");
         recTimesLbl.getStyleClass().add("event-label");
 
-        recurrentTimesField = new TextField();
-        recurrentTimesField.setPromptText("e.g. 5");
-        recurrentTimesField.getStyleClass().add("text-field");
+        recurrentTimesSpinner = new Spinner<>(1, 100, 5);
+        recurrentTimesSpinner.setEditable(true);
+        recurrentTimesSpinner.setMaxWidth(Double.MAX_VALUE);
+        // recurrentTimesSpinner.getStyleClass().add("spinner"); // Optional custom
+        // style
 
         Label recEndLbl = new Label("Recurrent End Date");
         recEndLbl.getStyleClass().add("event-label");
@@ -209,7 +211,7 @@ public class CreateEventPage {
                 sep,
                 recTitle,
                 recIntLbl, recurrentIntervalBox,
-                recTimesLbl, recurrentTimesField,
+                recTimesLbl, recurrentTimesSpinner,
                 recEndLbl, recurrentEndDatePicker,
                 submitBtn);
 
@@ -278,7 +280,7 @@ public class CreateEventPage {
                     default -> "";
                 };
                 event.setRecurrentInterval(code);
-                event.setRecurrentTimes(recurrentTimesField.getText());
+                event.setRecurrentTimes(String.valueOf(recurrentTimesSpinner.getValue()));
                 if (recurrentEndDatePicker.getValue() != null) {
                     event.setRecurrentEndDate(recurrentEndDatePicker.getValue().toString());
                 }

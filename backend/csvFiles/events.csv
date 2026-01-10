@@ -3,7 +3,9 @@ id,userId,title,description,startDateTime,endDateTime,category
 2,1,body checkup,my body checkup,2026-01-31T00:30,2026-01-31T06:00,HEALTH
 3,2,another graduation,my graduation 2,2026-01-19T00:15,2026-01-19T11:45,EDUCATION
 4,1,hello world,hi,2026-01-01T01:30,2026-01-01T06:00,PERSONAL
-1,1,graduation,my graduation,2026-01-15T00:15,2026-01-15T11:00,EDUCATION
-2,1,body checkup,my body checkup,2026-01-31T00:30,2026-01-31T06:00,HEALTH
-3,2,another graduation,my graduation 2,2026-01-19T00:15,2026-01-19T11:45,EDUCATION
-4,1,hello world,hi,2026-01-01T01:30,2026-01-01T06:00,PERSONAL
+5,1,meet up with friends,dinner,2026-01-13T21:30,2026-01-13T22:30,SOCIAL
+6,1,meet up with friends,dinner,2026-01-20T21:30,2026-01-20T22:30,SOCIAL
+7,1,meet up with friends,dinner,2026-01-27T21:30,2026-01-27T22:30,SOCIAL
+8,1,class,fop,2026-01-04T09:00,2026-01-04T10:00,PROFESSIONAL
+9,1,class,fop,2026-01-05T09:00,2026-01-05T10:00,PROFESSIONAL
+10,1,class,fop,2026-01-06T09:00,2026-01-06T10:00,PROFESSIONAL
