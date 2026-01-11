@@ -2,6 +2,7 @@ package com.example.backend.controllers;
 
 import com.example.backend.model.AppUser;
 import com.example.backend.service.EventCsvService;
+import com.example.backend.service.RecurrentCsvService;
 import com.example.backend.service.UserCsvService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,12 @@ public class UserController {
 
     private final UserCsvService userService;
     private final EventCsvService eventService;
+    private final RecurrentCsvService recurrentService;
 
     public UserController() {
         this.userService = new UserCsvService();
         this.eventService = new EventCsvService();
+        this.recurrentService = new RecurrentCsvService();
     }
 
     @GetMapping
@@ -157,14 +160,22 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // First, delete all events created by this user
+            // First, get all event IDs for this user
+            List<Integer> eventIds = eventService.getEventIdsByUserId(userId);
+            
+            // Delete recurrent rules for these events
+            if (!eventIds.isEmpty()) {
+                recurrentService.deleteRecurrentRulesByEventIds(eventIds);
+            }
+            
+            // Then, delete all events created by this user
             eventService.deleteEventsByUserId(userId);
             
-            // Then, delete the user
+            // Finally, delete the user
             boolean success = userService.deleteUser(userId);
             if (success) {
                 response.put("success", true);
-                response.put("message", "User and all associated events deleted successfully");
+                response.put("message", "User and all associated events and recurrent rules deleted successfully");
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);

@@ -108,6 +108,8 @@ public class SettingsPage {
         section.getStyleClass().add("settings-section");
         section.setMaxWidth(Double.MAX_VALUE);
 
+        ThemeManager theme = ThemeManager.getInstance();
+
         Label sectionTitle = new Label("👤 Profile Information");
         sectionTitle.getStyleClass().add("section-title");
 
@@ -149,6 +151,7 @@ public class SettingsPage {
         // Update Profile Button
         Button updateProfileBtn = new Button("💾 Update Profile");
         updateProfileBtn.getStyleClass().add("settings-button");
+        applyThemeToButton(updateProfileBtn, theme);
         updateProfileBtn.setOnAction(e -> updateProfile(nameField.getText()));
 
         section.getChildren().addAll(sectionTitle, nameBox, emailBox, updateProfileBtn);
@@ -159,6 +162,8 @@ public class SettingsPage {
         VBox section = new VBox(15);
         section.getStyleClass().add("settings-section");
         section.setMaxWidth(Double.MAX_VALUE);
+
+        ThemeManager theme = ThemeManager.getInstance();
 
         Label sectionTitle = new Label("🔒 Security");
         sectionTitle.getStyleClass().add("section-title");
@@ -208,6 +213,7 @@ public class SettingsPage {
         // Change Password Button
         Button changePwBtn = new Button("🔑 Change Password");
         changePwBtn.getStyleClass().add("settings-button");
+        applyThemeToButton(changePwBtn, theme);
         changePwBtn.setOnAction(e -> changePassword(
                 currentPwField.getText(),
                 newPwField.getText(),
@@ -225,6 +231,8 @@ public class SettingsPage {
         section.getStyleClass().add("settings-section");
         section.setMaxWidth(Double.MAX_VALUE);
 
+        ThemeManager theme = ThemeManager.getInstance();
+
         Label sectionTitle = new Label("⚡ Account Actions");
         sectionTitle.getStyleClass().add("section-title");
 
@@ -234,12 +242,14 @@ public class SettingsPage {
 
         // Logout Button
         Button logoutBtn = new Button("🚪 Logout");
-        logoutBtn.getStyleClass().addAll("settings-button", "logout-button");
+        logoutBtn.getStyleClass().add("settings-button");
+        applyThemeToLogoutButton(logoutBtn, theme);
         logoutBtn.setOnAction(e -> logout());
 
         // Delete Account Button
         Button deleteBtn = new Button("🗑️ Delete Account");
-        deleteBtn.getStyleClass().addAll("settings-button", "delete-button");
+        deleteBtn.getStyleClass().add("settings-button");
+        applyThemeToDeleteButton(deleteBtn);
         deleteBtn.setOnAction(e -> deleteAccount());
 
         buttonsBox.getChildren().addAll(logoutBtn, deleteBtn);
@@ -395,5 +405,58 @@ public class SettingsPage {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void applyThemeToButton(Button button, ThemeManager theme) {
+        String buttonColor = theme.getButtonColor();
+        String hoverColor = theme.getHoverButtonColor();
+        
+        String normalStyle = "-fx-background-color: " + buttonColor + ";" +
+                           " -fx-text-fill: white;" +
+                           " -fx-font-size: 14px;" +
+                           " -fx-font-weight: bold;" +
+                           " -fx-padding: 12 30;" +
+                           " -fx-background-radius: 8;" +
+                           " -fx-cursor: hand;";
+        
+        String hoverStyle = "-fx-background-color: " + hoverColor + ";" +
+                          " -fx-text-fill: white;" +
+                          " -fx-font-size: 14px;" +
+                          " -fx-font-weight: bold;" +
+                          " -fx-padding: 12 30;" +
+                          " -fx-background-radius: 8;" +
+                          " -fx-cursor: hand;";
+        
+        button.setStyle(normalStyle);
+        button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
+        button.setOnMouseExited(e -> button.setStyle(normalStyle));
+    }
+
+    private void applyThemeToLogoutButton(Button button, ThemeManager theme) {
+        // Use theme color for logout button too
+        applyThemeToButton(button, theme);
+    }
+
+    private void applyThemeToDeleteButton(Button button) {
+        // Keep red color for delete button (danger action)
+        String normalStyle = "-fx-background-color: #e74c3c;" +
+                           " -fx-text-fill: white;" +
+                           " -fx-font-size: 14px;" +
+                           " -fx-font-weight: bold;" +
+                           " -fx-padding: 12 30;" +
+                           " -fx-background-radius: 8;" +
+                           " -fx-cursor: hand;";
+        
+        String hoverStyle = "-fx-background-color: #c0392b;" +
+                          " -fx-text-fill: white;" +
+                          " -fx-font-size: 14px;" +
+                          " -fx-font-weight: bold;" +
+                          " -fx-padding: 12 30;" +
+                          " -fx-background-radius: 8;" +
+                          " -fx-cursor: hand;";
+        
+        button.setStyle(normalStyle);
+        button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
+        button.setOnMouseExited(e -> button.setStyle(normalStyle));
     }
 }

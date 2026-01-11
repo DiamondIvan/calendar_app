@@ -122,6 +122,19 @@ public class RecurrentCsvService {
         }
     }
 
+    public void deleteRecurrentRulesByEventIds(List<Integer> eventIds) {
+        if (eventIds == null || eventIds.isEmpty()) {
+            return;
+        }
+        
+        List<Event> rules = loadRecurrentRules();
+        boolean removed = rules.removeIf(e -> eventIds.contains(e.getId()));
+        
+        if (removed) {
+            rewriteCsv(rules);
+        }
+    }
+
     private void rewriteCsv(List<Event> rules) {
         try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), false),
                 StandardCharsets.UTF_8)) {
