@@ -9,7 +9,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
@@ -85,21 +84,21 @@ public class SettingsPage {
         VBox sectionsContainer = new VBox(25);
         sectionsContainer.setAlignment(Pos.CENTER);
         sectionsContainer.setMaxWidth(Double.MAX_VALUE);
-        sectionsContainer.prefWidthProperty().bind(root.widthProperty().multiply(0.65));
+        sectionsContainer.prefWidthProperty().bind(root.widthProperty().multiply(0.50));
 
         // Profile Section
         VBox profileSection = createProfileSection();
-        
+
         // Security Section
         VBox securitySection = createSecuritySection();
-        
+
         // Account Actions Section
         VBox actionsSection = createAccountActionsSection();
 
         sectionsContainer.getChildren().addAll(profileSection, securitySection, actionsSection);
 
         root.getChildren().addAll(title, subtitle, sectionsContainer);
-        
+
         scrollPane.setContent(root);
         return scrollPane;
     }
@@ -107,6 +106,7 @@ public class SettingsPage {
     private VBox createProfileSection() {
         VBox section = new VBox(15);
         section.getStyleClass().add("settings-section");
+        section.setMaxWidth(Double.MAX_VALUE);
 
         Label sectionTitle = new Label("👤 Profile Information");
         sectionTitle.getStyleClass().add("section-title");
@@ -116,15 +116,15 @@ public class SettingsPage {
         nameBox.setAlignment(Pos.CENTER_LEFT);
         Label nameLabel = new Label("Name:");
         nameLabel.getStyleClass().add("field-label");
-        nameLabel.setMinWidth(120);
-        
+        nameLabel.setMinWidth(80);
+
         TextField nameField = new TextField();
         nameField.getStyleClass().add("settings-input");
         nameField.setPromptText("Enter your name");
         if (currentUser != null && currentUser.getName() != null) {
             nameField.setText(currentUser.getName());
         }
-        nameField.setMaxWidth(350);
+        nameField.setMaxWidth(300);
 
         nameBox.getChildren().addAll(nameLabel, nameField);
 
@@ -133,8 +133,8 @@ public class SettingsPage {
         emailBox.setAlignment(Pos.CENTER_LEFT);
         Label emailLabel = new Label("Email:");
         emailLabel.getStyleClass().add("field-label");
-        emailLabel.setMinWidth(120);
-        
+        emailLabel.setMinWidth(80);
+
         TextField emailField = new TextField();
         emailField.getStyleClass().add("settings-input");
         emailField.setEditable(false);
@@ -142,7 +142,7 @@ public class SettingsPage {
         if (currentUser != null && currentUser.getEmail() != null) {
             emailField.setText(currentUser.getEmail());
         }
-        emailField.setMaxWidth(350);
+        emailField.setMaxWidth(300);
 
         emailBox.getChildren().addAll(emailLabel, emailField);
 
@@ -158,6 +158,7 @@ public class SettingsPage {
     private VBox createSecuritySection() {
         VBox section = new VBox(15);
         section.getStyleClass().add("settings-section");
+        section.setMaxWidth(Double.MAX_VALUE);
 
         Label sectionTitle = new Label("🔒 Security");
         sectionTitle.getStyleClass().add("section-title");
@@ -167,12 +168,12 @@ public class SettingsPage {
         currentPwBox.setAlignment(Pos.CENTER_LEFT);
         Label currentPwLabel = new Label("Current Password:");
         currentPwLabel.getStyleClass().add("field-label");
-        currentPwLabel.setMinWidth(150);
-        
+        currentPwLabel.setMinWidth(110);
+
         PasswordField currentPwField = new PasswordField();
         currentPwField.getStyleClass().add("settings-input");
         currentPwField.setPromptText("Enter current password");
-        currentPwField.setMaxWidth(320);
+        currentPwField.setMaxWidth(280);
 
         currentPwBox.getChildren().addAll(currentPwLabel, currentPwField);
 
@@ -181,12 +182,12 @@ public class SettingsPage {
         newPwBox.setAlignment(Pos.CENTER_LEFT);
         Label newPwLabel = new Label("New Password:");
         newPwLabel.getStyleClass().add("field-label");
-        newPwLabel.setMinWidth(150);
-        
+        newPwLabel.setMinWidth(110);
+
         PasswordField newPwField = new PasswordField();
         newPwField.getStyleClass().add("settings-input");
         newPwField.setPromptText("Enter new password");
-        newPwField.setMaxWidth(320);
+        newPwField.setMaxWidth(280);
 
         newPwBox.getChildren().addAll(newPwLabel, newPwField);
 
@@ -195,12 +196,12 @@ public class SettingsPage {
         confirmPwBox.setAlignment(Pos.CENTER_LEFT);
         Label confirmPwLabel = new Label("Confirm Password:");
         confirmPwLabel.getStyleClass().add("field-label");
-        confirmPwLabel.setMinWidth(150);
-        
+        confirmPwLabel.setMinWidth(110);
+
         PasswordField confirmPwField = new PasswordField();
         confirmPwField.getStyleClass().add("settings-input");
         confirmPwField.setPromptText("Confirm new password");
-        confirmPwField.setMaxWidth(320);
+        confirmPwField.setMaxWidth(280);
 
         confirmPwBox.getChildren().addAll(confirmPwLabel, confirmPwField);
 
@@ -208,13 +209,12 @@ public class SettingsPage {
         Button changePwBtn = new Button("🔑 Change Password");
         changePwBtn.getStyleClass().add("settings-button");
         changePwBtn.setOnAction(e -> changePassword(
-            currentPwField.getText(), 
-            newPwField.getText(), 
-            confirmPwField.getText(),
-            currentPwField,
-            newPwField,
-            confirmPwField
-        ));
+                currentPwField.getText(),
+                newPwField.getText(),
+                confirmPwField.getText(),
+                currentPwField,
+                newPwField,
+                confirmPwField));
 
         section.getChildren().addAll(sectionTitle, currentPwBox, newPwBox, confirmPwBox, changePwBtn);
         return section;
@@ -223,6 +223,7 @@ public class SettingsPage {
     private VBox createAccountActionsSection() {
         VBox section = new VBox(15);
         section.getStyleClass().add("settings-section");
+        section.setMaxWidth(Double.MAX_VALUE);
 
         Label sectionTitle = new Label("⚡ Account Actions");
         sectionTitle.getStyleClass().add("section-title");
@@ -271,12 +272,13 @@ public class SettingsPage {
             userData.put("password", currentUser.getPassword());
 
             JsonNode response = apiService.putJson("/api/users/" + currentUser.getId(), userData);
-            
+
             if (response.has("success") && response.get("success").asBoolean()) {
                 currentUser.setName(newName.trim());
                 showAlert("Success", "Profile updated successfully!", Alert.AlertType.INFORMATION);
             } else {
-                String message = response.has("message") ? response.get("message").asText() : "Failed to update profile";
+                String message = response.has("message") ? response.get("message").asText()
+                        : "Failed to update profile";
                 showAlert("Error", message, Alert.AlertType.ERROR);
             }
         } catch (Exception e) {
@@ -284,8 +286,8 @@ public class SettingsPage {
         }
     }
 
-    private void changePassword(String currentPw, String newPw, String confirmPw, 
-                                PasswordField currentField, PasswordField newField, PasswordField confirmField) {
+    private void changePassword(String currentPw, String newPw, String confirmPw,
+            PasswordField currentField, PasswordField newField, PasswordField confirmField) {
         if (currentUser == null) {
             showAlert("Error", "No user logged in", Alert.AlertType.ERROR);
             return;
@@ -325,7 +327,7 @@ public class SettingsPage {
             userData.put("password", newPw);
 
             JsonNode response = apiService.putJson("/api/users/" + currentUser.getId(), userData);
-            
+
             if (response.has("success") && response.get("success").asBoolean()) {
                 currentUser.setPassword(newPw);
                 currentField.clear();
@@ -333,7 +335,8 @@ public class SettingsPage {
                 confirmField.clear();
                 showAlert("Success", "Password changed successfully!", Alert.AlertType.INFORMATION);
             } else {
-                String message = response.has("message") ? response.get("message").asText() : "Failed to change password";
+                String message = response.has("message") ? response.get("message").asText()
+                        : "Failed to change password";
                 showAlert("Error", message, Alert.AlertType.ERROR);
             }
         } catch (Exception e) {
@@ -352,8 +355,8 @@ public class SettingsPage {
         confirmation.setTitle("Delete Account");
         confirmation.setHeaderText("Are you absolutely sure?");
         confirmation.setContentText("This will permanently delete your account and all associated data.\n" +
-                                   "This action cannot be undone!\n\n" +
-                                   "User: " + currentUser.getEmail());
+                "This action cannot be undone!\n\n" +
+                "User: " + currentUser.getEmail());
 
         ButtonType deleteButton = new ButtonType("Delete Forever", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -363,12 +366,14 @@ public class SettingsPage {
             if (response == deleteButton) {
                 try {
                     JsonNode result = apiService.deleteJson("/api/users/" + currentUser.getId());
-                    
+
                     if (result.has("success") && result.get("success").asBoolean()) {
-                        showAlert("Account Deleted", "Your account has been permanently deleted.", Alert.AlertType.INFORMATION);
+                        showAlert("Account Deleted", "Your account has been permanently deleted.",
+                                Alert.AlertType.INFORMATION);
                         logout();
                     } else {
-                        String message = result.has("message") ? result.get("message").asText() : "Failed to delete account";
+                        String message = result.has("message") ? result.get("message").asText()
+                                : "Failed to delete account";
                         showAlert("Error", message, Alert.AlertType.ERROR);
                     }
                 } catch (Exception e) {
