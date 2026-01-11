@@ -106,4 +106,68 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<Map<String, Object>> updateUser(@PathVariable int userId, @RequestBody AppUser updatedUser) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            AppUser existingUser = userService.getUserById(userId);
+            if (existingUser == null) {
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+
+            // Keep the same ID
+            updatedUser.setId(userId);
+
+            // If email is being changed, check if it already exists
+            if (!existingUser.getEmail().equals(updatedUser.getEmail())) {
+                if (userService.emailExists(updatedUser.getEmail())) {
+                    response.put("success", false);
+                    response.put("message", "Email already exists");
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+                }
+            }
+
+            boolean success = userService.updateUser(updatedUser);
+            if (success) {
+                response.put("success", true);
+                response.put("message", "User updated successfully");
+                response.put("user", updatedUser);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "Failed to update user");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error updating user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable int userId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            boolean success = userService.deleteUser(userId);
+            if (success) {
+                response.put("success", true);
+                response.put("message", "User deleted successfully");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error deleting user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 }

@@ -152,4 +152,76 @@ public class UserCsvService {
         }
         return null;
     }
+
+    public synchronized boolean updateUser(AppUser updatedUser) {
+        if (updatedUser == null || updatedUser.getId() == 0) {
+            return false;
+        }
+
+        List<AppUser> users = loadUsers();
+        boolean found = false;
+
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).getId() == updatedUser.getId()) {
+                users.set(i, updatedUser);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return false;
+        }
+
+        // Rewrite the entire CSV file
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile()), StandardCharsets.UTF_8)) {
+            fw.write("id,name,email,password\n");
+            for (AppUser user : users) {
+                String row = user.getId() + "," +
+                        user.getName() + "," +
+                        user.getEmail() + "," +
+                        user.getPassword() + "\n";
+                fw.write(row);
+            }
+            return true;
+        } catch (IOException e) {
+            System.out.println("Error updating user: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public synchronized boolean deleteUser(int userId) {
+        List<AppUser> users = loadUsers();
+        boolean removed = users.removeIf(user -> user.getId() == userId);
+
+        if (!removed) {
+            return false;
+        }
+
+        // Rewrite the entire CSV file
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile()), StandardCharsets.UTF_8)) {
+            fw.write("id,name,email,password\n");
+            for (AppUser user : users) {
+                String row = user.getId() + "," +
+                        user.getName() + "," +
+                        user.getEmail() + "," +
+                        user.getPassword() + "\n";
+                fw.write(row);
+            }
+            return true;
+        } catch (IOException e) {
+            System.out.println("Error deleting user: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public AppUser getUserById(int userId) {
+        List<AppUser> users = loadUsers();
+        for (AppUser user : users) {
+            if (user.getId() == userId) {
+                return user;
+            }
+        }
+        return null;
+    }
 }

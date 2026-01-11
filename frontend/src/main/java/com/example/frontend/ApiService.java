@@ -99,4 +99,18 @@ public class ApiService {
 
         return objectMapper.readTree(body);
     }
+
+    public JsonNode putJson(String endpoint, Object payload) throws IOException, InterruptedException {
+        String json = objectMapper.writeValueAsString(payload);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .PUT(HttpRequest.BodyPublishers.ofString(json))
+                .uri(URI.create(BACKEND_URL + endpoint))
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return parseJsonResponse(endpoint, response);
+    }
 }
