@@ -8,6 +8,7 @@ import com.example.frontend.service.UserCsvService;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -35,6 +36,7 @@ public class App extends Application {
         scene = new Scene(root, 1200, 800); // Increased size for desktop feel
 
         stage.setTitle("Calendar Application");
+        stage.getIcons().add(new Image(App.class.getResourceAsStream("/frontend/calendar_app.png")));
         stage.setScene(scene);
         stage.show();
 
