@@ -267,9 +267,9 @@ public class AboutPage {
                 VBox basicCard = createMarksCard(
                                 "Basic Requirements",
                                 null,
-                                new String[] { "Event Creation (1m)", "Update & Delete (1m)", "Recurring Events (1m)",
-                                                "Backup & Restore (1m)" },
-                                "8 Marks",
+                                new String[] { "Event Creation", "Update & Delete", "Recurring Events",
+                                                "Backup & Restore", "" },
+                                "Complete Command",
                                 "Total Basic",
                                 "#4e73df");
 
@@ -278,8 +278,8 @@ public class AboutPage {
                                 "Tech Stack",
                                 null,
                                 new String[] { "Language: Java", "Concept: OOP Principles", "Storage: File I/O (CSV)",
-                                                "Collaboration: Git/GitHub" },
-                                "Essential",
+                                                "Collaboration: Git/GitHub", "" },
+                                "Structured Architecture",
                                 "Programming Skills",
                                 "#36b9cc");
 
@@ -287,9 +287,9 @@ public class AboutPage {
                 VBox extraCard = createMarksCard(
                                 "Extra Features",
                                 null,
-                                new String[] { "Reminders (1m)", "Adv. Search (1m)", "Statistics (1m)",
-                                                "GUI / Conflict Detect (1m)" },
-                                "4 Marks",
+                                new String[] { "Log in / Sign Up ", "Interactive GUI", "Statistics",
+                                                "Settings for Calendar", "Advanced Search" },
+                                "Dynamic Control",
                                 "Maximum Extra",
                                 "#1cc88a");
 
@@ -306,7 +306,7 @@ public class AboutPage {
                 contactHeader.setStyle(
                                 "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333; -fx-border-color: #1cc88a; -fx-border-width: 0 0 2 0; -fx-padding: 0 0 5 0;");
 
-                Label contactName = new Label("Fong Jun Toh");
+                Label contactName = new Label("Jonas Chuan");
                 contactName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
                 Label contactDesc = new Label("For any questions or clarifications.");
@@ -318,7 +318,7 @@ public class AboutPage {
                 Label contactPhone = new Label("📞 019-5187978");
                 contactPhone.setStyle("-fx-text-fill: #1cc88a; -fx-font-size: 14px;");
 
-                Label contactEmail = new Label("✉ JunToh123@gmail.com");
+                Label contactEmail = new Label("✉ jc.chuan.0303@gmail.com");
                 contactEmail.setStyle("-fx-text-fill: #1cc88a; -fx-font-size: 14px;");
 
                 contactSection.getChildren().addAll(contactHeader, contactName, contactDesc, contactLocation,
