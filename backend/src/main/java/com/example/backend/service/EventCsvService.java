@@ -169,6 +169,15 @@ public class EventCsvService {
         }
     }
 
+    public void deleteEventsByUserId(int userId) {
+        List<Event> allEvents = loadEvents();
+        boolean removed = allEvents.removeIf(e -> e.getUserId() == userId);
+
+        if (removed) {
+            rewriteCsv(allEvents);
+        }
+    }
+
     private void rewriteCsv(List<Event> events) {
         try (Writer fw = new OutputStreamWriter(new FileOutputStream(csvPath.toFile(), false),
                 StandardCharsets.UTF_8)) {

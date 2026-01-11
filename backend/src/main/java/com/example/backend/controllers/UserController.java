@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.model.AppUser;
+import com.example.backend.service.EventCsvService;
 import com.example.backend.service.UserCsvService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +16,11 @@ import java.util.Map;
 public class UserController {
 
     private final UserCsvService userService;
+    private final EventCsvService eventService;
 
     public UserController() {
         this.userService = new UserCsvService();
+        this.eventService = new EventCsvService();
     }
 
     @GetMapping
@@ -154,10 +157,14 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            // First, delete all events created by this user
+            eventService.deleteEventsByUserId(userId);
+            
+            // Then, delete the user
             boolean success = userService.deleteUser(userId);
             if (success) {
                 response.put("success", true);
-                response.put("message", "User deleted successfully");
+                response.put("message", "User and all associated events deleted successfully");
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);

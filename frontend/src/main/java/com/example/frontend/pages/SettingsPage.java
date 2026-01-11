@@ -384,19 +384,9 @@ public class SettingsPage {
     }
 
     private void logout() {
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("Logout");
-        confirmation.setHeaderText("Confirm Logout");
-        confirmation.setContentText("Are you sure you want to logout?");
-
-        confirmation.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                currentUser = null;
-                if (navigate != null) {
-                    navigate.accept("login");
-                }
-            }
-        });
+        if (navigate != null) {
+            navigate.accept("/logout");
+        }
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
