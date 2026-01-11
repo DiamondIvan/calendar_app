@@ -1,11 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-
 /* Main Background */
 .outer-root {
-    -fx-background-color: #e0f2f1; /* Light greenish gray bg similar to screenshot */
-    background-color: #e0f2f1;
-    -fx-font-family: 'Segoe UI', sans-serif;
-    font-family: 'Segoe UI', sans-serif;
+  -fx-background-color: #e0f2f1; /* Light greenish gray bg similar to screenshot */
+  background-color: #e0f2f1;
+  -fx-font-family: "Segoe UI", sans-serif;
+  font-family: "Segoe UI", sans-serif;
 }
 
 /* 
@@ -13,103 +11,103 @@
    This is the white rounded container holding everything
 */
 .main-container {
-    -fx-background-color: white;
-    background-color: white;
-    -fx-background-radius: 30;
-    border-radius: 30px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 20, 0, 0, 0);
+  -fx-background-color: white;
+  background-color: white;
+  -fx-background-radius: 30;
+  border-radius: 30px;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 20, 0, 0, 0);
 }
 
 /* Form Styles */
 .form-container {
-    -fx-background-color: transparent;
-    background-color: transparent;
+  -fx-background-color: transparent;
+  background-color: transparent;
 }
 
 .form-title {
-    -fx-font-size: 32px;
-    font-size: 32px;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-text-fill: #333;
+  -fx-font-size: 32px;
+  font-size: 32px;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: #333;
 }
 
 .sub-text {
-    -fx-font-size: 12px;
-    font-size: 12px;
-    -fx-text-fill: #888;
+  -fx-font-size: 12px;
+  font-size: 12px;
+  -fx-text-fill: #888;
 }
 
 .input-field {
-    -fx-background-color: #eee;
-    background-color: #eee;
-    -fx-background-radius: 8;
-    border-radius: 8px;
-    -fx-pref-width: 300;
-    -fx-max-width: 300;
-    max-width: 300px;
-    -fx-padding: 12;
-    padding: 12px;
-    -fx-font-size: 14px;
-    font-size: 14px;
-    -fx-border-color: transparent;
-    border-color: transparent;
+  -fx-background-color: #eee;
+  background-color: #eee;
+  -fx-background-radius: 8;
+  border-radius: 8px;
+  -fx-pref-width: 300;
+  -fx-max-width: 300;
+  max-width: 300px;
+  -fx-padding: 12;
+  padding: 12px;
+  -fx-font-size: 14px;
+  font-size: 14px;
+  -fx-border-color: transparent;
+  border-color: transparent;
 }
 
 .input-field:focused {
-    -fx-background-color: #e0e0e0;
-    background-color: #e0e0e0;
+  -fx-background-color: #e0e0e0;
+  background-color: #e0e0e0;
 }
 
 .action-btn {
-    -fx-background-color: #2e7d32; /* Green Button */
-    background-color: #2e7d32;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-font-size: 14px;
-    font-size: 14px;
-    -fx-padding: 12 40;
-    padding: 12px 40px;
-    -fx-background-radius: 20;
-    border-radius: 20px;
-    -fx-cursor: hand;
-    cursor: pointer;
+  -fx-background-color: #2e7d32; /* Green Button */
+  background-color: #2e7d32;
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-font-size: 14px;
+  font-size: 14px;
+  -fx-padding: 12 40;
+  padding: 12px 40px;
+  -fx-background-radius: 20;
+  border-radius: 20px;
+  -fx-cursor: hand;
+  cursor: pointer;
 }
 
 .action-btn:hover {
-    -fx-background-color: #1b5e20;
-    background-color: #1b5e20;
+  -fx-background-color: #1b5e20;
+  background-color: #1b5e20;
 }
 
 .forgot-text {
-    -fx-font-size: 12px;
-    font-size: 12px;
-    -fx-text-fill: #666;
-    -fx-cursor: hand;
-    cursor: pointer;
+  -fx-font-size: 12px;
+  font-size: 12px;
+  -fx-text-fill: #666;
+  -fx-cursor: hand;
+  cursor: pointer;
 }
 
 /* Social Icons */
 .social-icon-btn {
-    -fx-background-color: white;
-    background-color: white;
-    -fx-border-color: #ddd;
-    border-color: #ddd;
-    -fx-border-radius: 50%; /* Circle */
-    border-radius: 50%;
-    -fx-background-radius: 50%;
-    -fx-min-width: 40;
-    min-width: 40px;
-    -fx-min-height: 40;
-    min-height: 40px;
-    -fx-max-width: 40;
-    max-width: 40px;
-    -fx-max-height: 40;
-    max-height: 40px;
-    -fx-text-fill: #333;
-    -fx-font-weight: bold;
-    font-weight: bold;
+  -fx-background-color: white;
+  background-color: white;
+  -fx-border-color: #ddd;
+  border-color: #ddd;
+  -fx-border-radius: 50%; /* Circle */
+  border-radius: 50%;
+  -fx-background-radius: 50%;
+  -fx-min-width: 40;
+  min-width: 40px;
+  -fx-min-height: 40;
+  min-height: 40px;
+  -fx-max-width: 40;
+  max-width: 40px;
+  -fx-max-height: 40;
+  max-height: 40px;
+  -fx-text-fill: #333;
+  -fx-font-weight: bold;
+  font-weight: bold;
 }
 
 /* 
@@ -117,54 +115,54 @@
    The Sliding Green Panel
 */
 .overlay-pane {
-    -fx-background-color: #2e7d32; /* Main Green */
-    background-color: #2e7d32;
-    -fx-background-radius: 30;
-    border-radius: 30px; 
+  -fx-background-color: #2e7d32; /* Main Green */
+  background-color: #2e7d32;
+  -fx-background-radius: 30;
+  border-radius: 30px;
 }
 
 .overlay-content {
-    -fx-alignment: center;
+  -fx-alignment: center;
 }
 
 .overlay-title {
-    -fx-font-size: 32px;
-    font-size: 32px;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-text-fill: white;
+  -fx-font-size: 32px;
+  font-size: 32px;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-text-fill: white;
 }
 
 .overlay-desc {
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    font-size: 14px;
-    -fx-text-alignment: center;
-    -fx-max-width: 250;
-    max-width: 250px;
-    -fx-wrap-text: true;
+  -fx-text-fill: white;
+  -fx-font-size: 14px;
+  font-size: 14px;
+  -fx-text-alignment: center;
+  -fx-max-width: 250;
+  max-width: 250px;
+  -fx-wrap-text: true;
 }
 
 .overlay-btn {
-    -fx-background-color: transparent;
-    background-color: transparent;
-    -fx-border-color: white;
-    border-color: white;
-    -fx-border-width: 2;
-    border-width: 2px;
-    -fx-border-radius: 20;
-    border-radius: 20px;
-    -fx-background-radius: 20;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    font-weight: bold;
-    -fx-padding: 10 40;
-    padding: 10px 40px;
-    -fx-cursor: hand;
-    cursor: pointer;
+  -fx-background-color: transparent;
+  background-color: transparent;
+  -fx-border-color: white;
+  border-color: white;
+  -fx-border-width: 2;
+  border-width: 2px;
+  -fx-border-radius: 20;
+  border-radius: 20px;
+  -fx-background-radius: 20;
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+  font-weight: bold;
+  -fx-padding: 10 40;
+  padding: 10px 40px;
+  -fx-cursor: hand;
+  cursor: pointer;
 }
 
 .overlay-btn:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
-    background-color: rgba(255, 255, 255, 0.2);
+  -fx-background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.2);
 }
