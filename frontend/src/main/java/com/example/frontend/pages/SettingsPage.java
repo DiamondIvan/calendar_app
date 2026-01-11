@@ -68,7 +68,7 @@ public class SettingsPage {
         }
 
         // Header
-        Label title = new Label("⚙️ Settings");
+        Label title = new Label("Settings");
         title.getStyleClass().add("settings-title");
 
         String subtitleText = "Manage your account and preferences";
@@ -410,23 +410,23 @@ public class SettingsPage {
     private void applyThemeToButton(Button button, ThemeManager theme) {
         String buttonColor = theme.getButtonColor();
         String hoverColor = theme.getHoverButtonColor();
-        
+
         String normalStyle = "-fx-background-color: " + buttonColor + ";" +
-                           " -fx-text-fill: white;" +
-                           " -fx-font-size: 14px;" +
-                           " -fx-font-weight: bold;" +
-                           " -fx-padding: 12 30;" +
-                           " -fx-background-radius: 8;" +
-                           " -fx-cursor: hand;";
-        
+                " -fx-text-fill: white;" +
+                " -fx-font-size: 14px;" +
+                " -fx-font-weight: bold;" +
+                " -fx-padding: 12 30;" +
+                " -fx-background-radius: 8;" +
+                " -fx-cursor: hand;";
+
         String hoverStyle = "-fx-background-color: " + hoverColor + ";" +
-                          " -fx-text-fill: white;" +
-                          " -fx-font-size: 14px;" +
-                          " -fx-font-weight: bold;" +
-                          " -fx-padding: 12 30;" +
-                          " -fx-background-radius: 8;" +
-                          " -fx-cursor: hand;";
-        
+                " -fx-text-fill: white;" +
+                " -fx-font-size: 14px;" +
+                " -fx-font-weight: bold;" +
+                " -fx-padding: 12 30;" +
+                " -fx-background-radius: 8;" +
+                " -fx-cursor: hand;";
+
         button.setStyle(normalStyle);
         button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
         button.setOnMouseExited(e -> button.setStyle(normalStyle));
@@ -440,21 +440,21 @@ public class SettingsPage {
     private void applyThemeToDeleteButton(Button button) {
         // Keep red color for delete button (danger action)
         String normalStyle = "-fx-background-color: #e74c3c;" +
-                           " -fx-text-fill: white;" +
-                           " -fx-font-size: 14px;" +
-                           " -fx-font-weight: bold;" +
-                           " -fx-padding: 12 30;" +
-                           " -fx-background-radius: 8;" +
-                           " -fx-cursor: hand;";
-        
+                " -fx-text-fill: white;" +
+                " -fx-font-size: 14px;" +
+                " -fx-font-weight: bold;" +
+                " -fx-padding: 12 30;" +
+                " -fx-background-radius: 8;" +
+                " -fx-cursor: hand;";
+
         String hoverStyle = "-fx-background-color: #c0392b;" +
-                          " -fx-text-fill: white;" +
-                          " -fx-font-size: 14px;" +
-                          " -fx-font-weight: bold;" +
-                          " -fx-padding: 12 30;" +
-                          " -fx-background-radius: 8;" +
-                          " -fx-cursor: hand;";
-        
+                " -fx-text-fill: white;" +
+                " -fx-font-size: 14px;" +
+                " -fx-font-weight: bold;" +
+                " -fx-padding: 12 30;" +
+                " -fx-background-radius: 8;" +
+                " -fx-cursor: hand;";
+
         button.setStyle(normalStyle);
         button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
         button.setOnMouseExited(e -> button.setStyle(normalStyle));

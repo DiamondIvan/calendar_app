@@ -27,10 +27,11 @@ public class NavBar extends HBox {
         // Buttons
         Button homeBtn = createNavButton("home.png", "/");
         Button calBtn = createNavButton("calender1.png", "/calendar");
-        Button loginBtn = createNavButton("login.png", "/login");
+        Button loginBtn = createNavButton("Login1.png", "/login");
         Button statsBtn = createNavButton("bar-chart.png", "/statistics");
+        Button settingsBtn = createNavButton("settings.png", "/settings");
 
-        this.getChildren().addAll(homeBtn, calBtn, loginBtn, statsBtn);
+        this.getChildren().addAll(homeBtn, calBtn, loginBtn, statsBtn, settingsBtn);
     }
 
     private Button createNavButton(String iconFileName, String route) {
