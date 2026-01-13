@@ -7,11 +7,47 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * HolidayData provides Malaysian public holiday information.
+ * 
+ * Currently contains:
+ * - A stub method for getting holidays by year (returns empty map)
+ * - Hard-coded 2026 Malaysian public holidays as Event objects
+ * 
+ * The 2026 holidays include major Malaysian holidays such as:
+ * New Year, Chinese New Year, Hari Raya, Deepavali, Christmas, etc.
+ * Regional holidays for specific states (Sabah, Sarawak, etc.) are also
+ * included.
+ */
 public class HolidayData {
+    /**
+     * Gets holidays for a specific year.
+     * 
+     * Currently a stub implementation that returns an empty map.
+     * Future implementation could return a map of dates to holiday names.
+     * 
+     * @param year The year to get holidays for
+     * @return Map of LocalDate to holiday name (currently empty)
+     */
     public static Map<LocalDate, String> getHolidays(int year) {
         return Collections.emptyMap();
     }
 
+    /**
+     * Returns a list of Malaysian public holidays for 2026 as Event objects.
+     * 
+     * Each holiday is created as an Event with:
+     * - Negative ID (-1000 to -1023) to avoid collisions with user events
+     * - User ID of -1 (system/public event)
+     * - Holiday name as title
+     * - "Public Holiday" as description
+     * - Date set to midnight (00:00:00) of the holiday
+     * - Category set to "HOLIDAY"
+     * 
+     * Includes 24 major Malaysian holidays covering all states and territories.
+     * 
+     * @return List of Event objects representing 2026 Malaysian public holidays
+     */
     public static List<Event> getHolidays2026() {
         List<Event> holidays = new ArrayList<>();
 
@@ -48,6 +84,12 @@ public class HolidayData {
         return holidays;
     }
 
+    /**
+     * Parses a date string in "YYYY-MM-DD" format to LocalDateTime at midnight.
+     * 
+     * @param date Date string in format "YYYY-MM-DD" (e.g., "2026-01-01")
+     * @return LocalDateTime representing the date at 00:00:00
+     */
     private static LocalDateTime parse(String date) {
         return LocalDateTime.parse(date + "T00:00:00");
     }

@@ -9,10 +9,40 @@ import javafx.scene.layout.HBox;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
+/**
+ * NavBar is a reusable navigation component that displays icon buttons for
+ * navigating
+ * between major sections of the application.
+ * 
+ * The navigation bar includes buttons for:
+ * - Home
+ * - Calendar
+ * - Login
+ * - Statistics
+ * - Settings
+ * 
+ * Each button displays an icon image and navigates to the corresponding route
+ * when clicked.
+ * This component extends HBox and is styled with CSS class "nav-bar".
+ */
 public class NavBar extends HBox {
 
     private final Consumer<String> navigate;
 
+    /**
+     * Constructs a NavBar with a navigation callback.
+     * Sets up the horizontal layout with icon buttons for each major section.
+     * 
+     * Layout specifications:
+     * - 15px spacing between buttons
+     * - 10px padding around the bar
+     * - Left-aligned buttons
+     * - Transparent background with pickOnBounds disabled to avoid blocking mouse
+     * events
+     * 
+     * @param navigate A callback function that handles navigation to different
+     *                 routes
+     */
     public NavBar(Consumer<String> navigate) {
         this.navigate = navigate;
 
@@ -34,6 +64,24 @@ public class NavBar extends HBox {
         this.getChildren().addAll(homeBtn, calBtn, loginBtn, statsBtn, settingsBtn);
     }
 
+    /**
+     * Creates a navigation button with an icon image.
+     * 
+     * Attempts to load an icon image from the resources folder.
+     * If the image cannot be loaded, falls back to a bullet point ("•") as text.
+     * 
+     * The button is styled with:
+     * - Transparent background
+     * - Hand cursor on hover
+     * - 40x40 pixel icon image (preserving aspect ratio)
+     * - CSS class "nav-icon-btn"
+     * 
+     * @param iconFileName The filename of the icon image to load (e.g., "home.png")
+     *                     Images should be located in /frontend/public/
+     * @param route        The navigation route to go to when the button is clicked
+     *                     (e.g., "/calendar")
+     * @return A Button configured with the icon and navigation action
+     */
     private Button createNavButton(String iconFileName, String route) {
         Button btn = new Button();
         btn.getStyleClass().add("nav-icon-btn");

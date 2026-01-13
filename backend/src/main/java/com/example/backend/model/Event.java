@@ -2,6 +2,18 @@ package com.example.backend.model;
 
 import java.time.LocalDateTime;
 
+/**
+ * Event represents a calendar event in the backend system.
+ * 
+ * Similar to the frontend Event model but with additional constructor overloads
+ * for flexible event creation from different data sources (JSON, CSV, etc.).
+ * 
+ * Features:
+ * - Basic event properties: id, userId, title, description, dates, category
+ * - Recurrence support: interval, times, end date
+ * - Multiple constructors for different use cases
+ * - Date parsing utility for flexible date string formats
+ */
 public class Event {
     private int id;
     private int userId;
@@ -15,9 +27,23 @@ public class Event {
     private String recurrentTimes;
     private String recurrentEndDate;
 
+    /**
+     * Default constructor for empty Event creation.
+     */
     public Event() {
     }
 
+    /**
+     * Full constructor with LocalDateTime objects.
+     * 
+     * @param id            Event ID
+     * @param userId        User who owns this event
+     * @param title         Event title
+     * @param description   Event description
+     * @param startDateTime Start date and time
+     * @param endDateTime   End date and time
+     * @param category      Event category (e.g., "WORK", "PERSONAL")
+     */
     public Event(int id, int userId, String title, String description, LocalDateTime startDateTime,
             LocalDateTime endDateTime, String category) {
         this.id = id;
@@ -29,6 +55,15 @@ public class Event {
         this.category = category;
     }
 
+    /**
+     * Constructor without ID and userId (for creating new events).
+     * 
+     * @param title         Event title
+     * @param description   Event description
+     * @param startDateTime Start date and time
+     * @param endDateTime   End date and time
+     * @param category      Event category
+     */
     public Event(String title, String description, LocalDateTime startDateTime, LocalDateTime endDateTime,
             String category) {
         this.title = title;
@@ -38,6 +73,18 @@ public class Event {
         this.category = category;
     }
 
+    /**
+     * Constructor with string dates for parsing flexibility.
+     * Useful for CSV import or form data where dates arrive as strings.
+     * 
+     * @param id          Event ID
+     * @param userId      User who owns this event
+     * @param title       Event title
+     * @param description Event description
+     * @param startStr    Start date as string (ISO format or "YYYY-MM-DD")
+     * @param endStr      End date as string (ISO format or "YYYY-MM-DD")
+     * @param category    Event category
+     */
     public Event(int id, int userId, String title, String description, String startStr, String endStr,
             String category) {
         this.id = id;
@@ -49,6 +96,16 @@ public class Event {
         this.category = category;
     }
 
+    /**
+     * Parses a date string to LocalDateTime.
+     * 
+     * Supports two formats:
+     * - ISO 8601 with time: "2026-01-15T14:30:00"
+     * - Date only: "2026-01-15" (assumes midnight 00:00:00)
+     * 
+     * @param d Date string to parse, or null
+     * @return LocalDateTime object, or null if input is null
+     */
     private LocalDateTime parseDate(String d) {
         if (d == null)
             return null;

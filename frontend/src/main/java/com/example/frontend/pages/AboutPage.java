@@ -13,14 +13,58 @@ import java.io.InputStream;
 import java.util.function.Consumer;
 import com.example.frontend.components.NavBar;
 
+/**
+ * AboutPage displays comprehensive information about the calendar application.
+ * 
+ * This page serves as the application's "About" or "Information" page,
+ * showcasing:
+ * - Project mission and solution overview
+ * - Technical architecture and data structures (CSV files)
+ * - Team member profiles with photos
+ * - Complete feature list (8 core features)
+ * - Marks distribution breakdown
+ * - Instructor contact information
+ * 
+ * Design features:
+ * - Scrollable content with multiple sections
+ * - Rich visual elements (images, icons, cards)
+ * - Modal dialog for problem statement
+ * - Responsive layout with grid-based feature cards
+ * - Color-coded sections for visual hierarchy
+ */
 public class AboutPage {
 
+        /** Navigation callback for routing to other pages */
         private final Consumer<String> navigate;
 
+        /**
+         * Constructs an AboutPage with navigation callback.
+         * 
+         * @param navigate Navigation callback for routing between pages
+         */
         public AboutPage(Consumer<String> navigate) {
                 this.navigate = navigate;
         }
 
+        /**
+         * Builds and returns the complete About page UI.
+         * 
+         * The page is organized into the following sections:
+         * 
+         * 1. **Hero Section**: Title and "View Problem Statement" button
+         * 2. **Infographic Cards**: Four mission/solution cards with icons
+         * 3. **Data Structure**: Technical details about CSV storage and files
+         * 4. **Team Section**: Profile cards for all 5 team members
+         * 5. **Features Section**: Grid of 8 feature cards
+         * 6. **Marks Distribution**: Three cards showing grade breakdown
+         * 7. **Contact Section**: Instructor information
+         * 8. **Footer**: Assignment information
+         * 
+         * All content is wrapped in a scrollable pane for easy navigation.
+         * The page uses AboutPage.css for styling.
+         * 
+         * @return A ScrollPane containing the complete About page layout
+         */
         public Node getView() {
                 // Create Navigation Bar
                 NavBar navBar = new NavBar(navigate);
@@ -351,7 +395,17 @@ public class AboutPage {
                 return scrollPane;
         }
 
-        // Helper: Top 4 Cards
+        /**
+         * Creates an informational card with icon, title, and description.
+         * 
+         * Used for the top row of mission/solution cards.
+         * Each card displays an icon image, bold title, and descriptive text.
+         * 
+         * @param iconName Filename of the icon image (in /frontend/public/)
+         * @param title    Bold title text for the card
+         * @param desc     Description text (supports wrapping)
+         * @return A styled VBox card component
+         */
         private VBox createCard(String iconName, String title, String desc) {
                 VBox card = new VBox(15);
                 card.getStyleClass().add("about-card");
@@ -374,7 +428,17 @@ public class AboutPage {
                 return card;
         }
 
-        // Helper: Custom Box for Code Tags
+        /**
+         * Creates a custom box for displaying code/technical information.
+         * 
+         * Used in the data structure section to display CSV file details.
+         * Combines a title, subtitle, and custom content node.
+         * 
+         * @param title   Main title (e.g., "event.csv")
+         * @param sub     Subtitle text (e.g., "Primary Storage")
+         * @param content Custom content node (usually VBox with labels)
+         * @return A styled VBox with white background
+         */
         private VBox createCustomBox(String title, String sub, Node content) {
                 VBox box = new VBox(8);
                 box.getStyleClass().add("feature-box");
@@ -389,6 +453,15 @@ public class AboutPage {
                 return box;
         }
 
+        /**
+         * Creates a code-styled label with monospace font.
+         * 
+         * Used for displaying technical terms like field names (e.g., "eventId").
+         * Styled with pink background and red text for code emphasis.
+         * 
+         * @param text The code text to display
+         * @return A styled Label with code appearance
+         */
         private Label createCodeTag(String text) {
                 Label lbl = new Label(text);
                 // Light pink bg, red text, monospace font
@@ -396,6 +469,14 @@ public class AboutPage {
                 return lbl;
         }
 
+        /**
+         * Creates a plain text label with standard styling.
+         * 
+         * Used for regular descriptive text in data structure boxes.
+         * 
+         * @param text The text to display
+         * @return A styled Label with dark text
+         */
         private Label createPlainLabel(String text) {
                 Label lbl = new Label(text);
                 // Ensure text is black/dark grey and readable
@@ -403,7 +484,17 @@ public class AboutPage {
                 return lbl;
         }
 
-        // Helper: Data Structure Box inside Blue Section
+        /**
+         * Creates a feature information box (currently unused).
+         * 
+         * Originally designed for displaying feature details with title,
+         * subtitle, and description.
+         * 
+         * @param title Feature title
+         * @param sub   Feature subtitle
+         * @param desc  Feature description
+         * @return A styled VBox component
+         */
         @SuppressWarnings("unused")
         private VBox createFeatureBox(String title, String sub, String desc) {
                 VBox box = new VBox(5);
@@ -419,7 +510,21 @@ public class AboutPage {
                 return box;
         }
 
-        // Helper: Team Member
+        /**
+         * Creates a team member profile card with photo and name.
+         * 
+         * Displays a circular profile photo (150x150px) with the member's name
+         * and optional role below. If the image fails to load, shows a gray
+         * circle placeholder.
+         * 
+         * The image is cropped to fit the circular frame using "cover" logic
+         * (fills the circle while maintaining aspect ratio).
+         * 
+         * @param imgName Filename of the member's photo (in /frontend/public/)
+         * @param name    Member's full name
+         * @param role    Optional role text (e.g., "(Group Leader)"), can be empty
+         * @return A VBox containing the profile card
+         */
         private VBox createTeamMember(String imgName, String name, String role) {
                 VBox box = new VBox(10);
                 box.setAlignment(Pos.CENTER);
@@ -477,7 +582,23 @@ public class AboutPage {
                 return box;
         }
 
-        // Helper: Marks Distribution Card
+        /**
+         * Creates a marks distribution card showing grade breakdown.
+         * 
+         * Displays a colored header with title, list of items, and total score.
+         * Used in the marks distribution section to show:
+         * - Basic Requirements (blue)
+         * - Tech Stack (cyan)
+         * - Extra Features (green)
+         * 
+         * @param title       Card title (e.g., "Basic Requirements")
+         * @param buttonText  Optional button text (null if no button needed)
+         * @param items       Array of item descriptions to list
+         * @param totalLabel  Large text for total (e.g., "Complete Command")
+         * @param totalDesc   Small text below total (e.g., "Total Basic")
+         * @param accentColor Hex color for header background (e.g., "#4e73df")
+         * @return A styled VBox card with colored header
+         */
         private VBox createMarksCard(String title, String buttonText, String[] items, String totalLabel,
                         String totalDesc, String accentColor) {
                 VBox card = new VBox();
@@ -538,6 +659,19 @@ public class AboutPage {
                 return card;
         }
 
+        /**
+         * Displays a modal dialog with the project's problem statement.
+         * 
+         * Shows a popup window containing:
+         * - Project objective title
+         * - "Optimize Limited Daytime" subheading
+         * - Description of time management importance
+         * - Core task details (build calendar app with Java/OOP)
+         * - Constraint (no databases, must use CSV files)
+         * - Assignment topic reference
+         * 
+         * Triggered when user clicks "VIEW PROBLEM STATEMENT" button.
+         */
         private void showProblemStatementModal() {
                 Alert modal = new Alert(Alert.AlertType.NONE);
                 modal.setTitle("Project Objective");
@@ -578,7 +712,17 @@ public class AboutPage {
                 modal.showAndWait();
         }
 
-        // Helper: Feature List Card
+        /**
+         * Creates a feature card for the feature grid.
+         * 
+         * Each card has a white background with shadow effect,
+         * displays a numbered title (e.g., "1. App Launch") and
+         * description text.
+         * 
+         * @param title Feature title with number (e.g., "1. App Launch")
+         * @param desc  Feature description text
+         * @return A styled VBox card (350px wide)
+         */
         private VBox createFeatureCard(String title, String desc) {
                 VBox card = new VBox(8);
                 card.getStyleClass().add("feature-list-card");
@@ -606,6 +750,12 @@ public class AboutPage {
                 return card;
         }
 
+        /**
+         * Shows a simple problem statement alert (currently unused).
+         * 
+         * Alternative to the modal version, displays project objective
+         * in a basic information alert dialog.
+         */
         @SuppressWarnings("unused")
         private void showProblemStatement() {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);

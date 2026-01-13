@@ -7,15 +7,45 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * UserCsvService manages user data persistence for the backend using CSV file
+ * storage.
+ * 
+ * This service handles all user-related database operations including:
+ * - CRUD operations (Create, Read, Update, Delete)
+ * - User authentication and validation
+ * - Email uniqueness checking
+ * - Auto-generating unique user IDs
+ * - UTF-8 encoded CSV file management
+ * 
+ * File location: backend/csvFiles/users.csv
+ * CSV format: id,name,email,password
+ * 
+ * All write operations use UTF-8 encoding to support international characters.
+ * Thread-safe ID generation and update/delete operations.
+ */
 public class UserCsvService {
 
+    /** Path to the users CSV file (resolved via BackendPaths utility) */
     private final Path csvPath = BackendPaths.resolveBackendDir().resolve("csvFiles").resolve("users.csv");
 
+    /**
+     * Constructs a UserCsvService and initializes the CSV file.
+     * Prints the resolved CSV path to console and ensures the file exists.
+     */
     public UserCsvService() {
         System.out.println("UserCsvService initialized. CSV Path: " + csvPath.toAbsolutePath());
         initializeCsv();
     }
 
+    /**
+     * Initializes the CSV file if it doesn't exist.
+     * 
+     * Creates the parent directory (csvFiles) and the users.csv file with header.
+     * Uses UTF-8 encoding for international character support.
+     * 
+     * Header: "id,name,email,password"
+     */
     private void initializeCsv() {
         File file = csvPath.toFile();
         File parentDir = file.getParentFile();
@@ -31,6 +61,14 @@ public class UserCsvService {
         }
     }
 
+    /**
+     * Loads all users from the CSV file.
+     * 
+     * Reads using UTF-8 encoding and parses each row into AppUser objects.
+     * Skips invalid rows and continues processing.
+     * 
+     * @return List of all users (empty list if file doesn't exist or error occurs)
+     */
     public List<AppUser> loadUsers() {
         List<AppUser> users = new ArrayList<>();
 
@@ -64,6 +102,14 @@ public class UserCsvService {
         return users;
     }
 
+    /**
+     * Generates the next available user ID.
+     * 
+     * Scans all existing users to find max ID and returns max + 1.
+     * Thread-safe to prevent duplicate IDs during concurrent registration.
+     * 
+     * @return Next unique user ID (1 if no users exist)
+     */
     public synchronized int getNextId() {
         int maxId = 0;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
@@ -88,6 +134,17 @@ public class UserCsvService {
         return maxId + 1;
     }
 
+    /**
+     * Saves a new user to the CSV file.
+     * 
+     * Auto-generates and assigns a new ID to the user.
+     * Ensures proper newline before appending to prevent malformed CSV.
+     * Uses UTF-8 encoding.
+     * 
+     * Logs each save operation to console for debugging.
+     * 
+     * @param user The user to save (ID will be auto-assigned)
+     */
     public void saveUser(AppUser user) {
         System.out.println("Attempting to save user: " + user.getEmail());
         int newId = getNextId();
@@ -109,6 +166,14 @@ public class UserCsvService {
         }
     }
 
+    /**
+     * Ensures the CSV file ends with a newline character.
+     * 
+     * Checks the last byte of the file and appends a newline if needed.
+     * This prevents CSV rows from being concatenated incorrectly.
+     * 
+     * Uses RandomAccessFile for efficient end-of-file checking.
+     */
     private void ensureNewline() {
         File file = csvPath.toFile();
         if (!file.exists() || file.length() == 0)
@@ -129,6 +194,14 @@ public class UserCsvService {
         }
     }
 
+    /**
+     * Checks if an email address is already registered.
+     * 
+     * Performs exact string matching (case-sensitive in backend).
+     * 
+     * @param email The email to check (returns false if null)
+     * @return true if email exists, false otherwise
+     */
     public boolean emailExists(String email) {
         if (email == null)
             return false;
@@ -141,6 +214,15 @@ public class UserCsvService {
         return false;
     }
 
+    /**
+     * Validates user login credentials.
+     * 
+     * Checks for exact email and password match.
+     * 
+     * @param email    User's email (returns null if null)
+     * @param password User's password (returns null if null)
+     * @return The AppUser object if valid, null otherwise
+     */
     public AppUser validateUser(String email, String password) {
         if (email == null || password == null)
             return null;
@@ -153,6 +235,17 @@ public class UserCsvService {
         return null;
     }
 
+    /**
+     * Updates an existing user's information.
+     * 
+     * Loads all users, finds the matching user by ID, replaces it,
+     * and rewrites the entire CSV file.
+     * 
+     * Thread-safe operation.
+     * 
+     * @param updatedUser The user with updated information (must have valid ID)
+     * @return true if user was found and updated, false otherwise
+     */
     public synchronized boolean updateUser(AppUser updatedUser) {
         if (updatedUser == null || updatedUser.getId() == 0) {
             return false;
@@ -190,6 +283,15 @@ public class UserCsvService {
         }
     }
 
+    /**
+     * Deletes a user by ID.
+     * 
+     * Loads all users, removes the matching user, and rewrites the CSV file.
+     * Thread-safe operation.
+     * 
+     * @param userId The ID of the user to delete
+     * @return true if user was found and deleted, false otherwise
+     */
     public synchronized boolean deleteUser(int userId) {
         List<AppUser> users = loadUsers();
         boolean removed = users.removeIf(user -> user.getId() == userId);
@@ -215,6 +317,12 @@ public class UserCsvService {
         }
     }
 
+    /**
+     * Retrieves a user by their ID.
+     * 
+     * @param userId The ID of the user to find
+     * @return The AppUser object if found, null otherwise
+     */
     public AppUser getUserById(int userId) {
         List<AppUser> users = loadUsers();
         for (AppUser user : users) {

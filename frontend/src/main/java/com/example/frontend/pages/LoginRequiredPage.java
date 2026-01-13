@@ -11,6 +11,16 @@ import javafx.scene.layout.VBox;
 
 import java.util.function.Consumer;
 
+/**
+ * A reusable page that displays a message when a user tries to access a
+ * protected resource
+ * without being logged in. Shows a custom message and an action button to
+ * navigate to login.
+ * 
+ * This page is used throughout the application to handle unauthenticated access
+ * attempts
+ * with a consistent, user-friendly interface.
+ */
 public class LoginRequiredPage {
 
     private final Consumer<String> navigate;
@@ -18,10 +28,31 @@ public class LoginRequiredPage {
     private final String actionRoute;
     private final String actionLabel;
 
+    /**
+     * Default constructor with standard login prompt.
+     * Creates a page with the default message "Please log in to continue."
+     * and a button that navigates to the login page.
+     * 
+     * @param navigate A callback function for navigation between pages
+     */
     public LoginRequiredPage(Consumer<String> navigate) {
         this(navigate, "Please log in to continue.", "/login", "Go to Login");
     }
 
+    /**
+     * Full constructor with customizable message and action button.
+     * Allows complete customization of the message and the action button's label
+     * and route.
+     * Provides default fallback values if any parameter is null or blank.
+     * 
+     * @param navigate    A callback function for navigation between pages
+     * @param messageText The message to display to the user. Defaults to "Please
+     *                    log in to continue." if null/blank.
+     * @param actionRoute The route to navigate to when the action button is
+     *                    clicked. Defaults to "/login" if null/blank.
+     * @param actionLabel The text label for the action button. Defaults to "Go to
+     *                    Login" if null/blank.
+     */
     public LoginRequiredPage(Consumer<String> navigate, String messageText, String actionRoute, String actionLabel) {
         this.navigate = navigate;
         this.messageText = (messageText != null && !messageText.isBlank()) ? messageText : "Please log in to continue.";
@@ -29,6 +60,20 @@ public class LoginRequiredPage {
         this.actionLabel = (actionLabel != null && !actionLabel.isBlank()) ? actionLabel : "Go to Login";
     }
 
+    /**
+     * Creates and returns the visual representation of the login required page.
+     * 
+     * The view includes:
+     * - A centered white card with shadow effect
+     * - Navigation bar (if navigate callback is provided)
+     * - Custom message text explaining why login is required
+     * - Themed action button that navigates to the specified route
+     * - Theme-aware background and button colors
+     * 
+     * The layout is responsive and centered in the available space.
+     * 
+     * @return A JavaFX Node containing the complete login required page UI
+     */
     public Node getView() {
         ThemeManager theme = ThemeManager.getInstance();
 
@@ -80,6 +125,19 @@ public class LoginRequiredPage {
         return root;
     }
 
+    /**
+     * Applies theme-aware styling to a button with hover effects.
+     * 
+     * Sets the button's background color and text color, and adds mouse hover
+     * event handlers that change the background color when hovering.
+     * Uses regex to replace the background color style while preserving other
+     * styles.
+     * 
+     * @param button   The button to apply styling to. If null, method returns
+     *                 immediately.
+     * @param normalBg The background color for the button's normal state
+     * @param hoverBg  The background color when the mouse hovers over the button
+     */
     private void themeSolidButton(Button button, String normalBg, String hoverBg) {
         if (button == null) {
             return;

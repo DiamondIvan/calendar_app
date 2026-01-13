@@ -13,15 +13,53 @@ import javafx.scene.layout.VBox;
 import java.util.function.Consumer;
 import com.example.frontend.model.AppUser;
 
+/**
+ * HomePage serves as the main dashboard of the application.
+ * Displays a welcome message, user information, and a grid of navigation cards
+ * that allow users to access different features of the application.
+ * 
+ * The page features a card-based interface with links to Calendar, Login,
+ * About,
+ * Statistics, Settings, and Backup & Restore pages.
+ */
 public class HomePage {
     private final Consumer<String> navigate;
     private final AppUser user;
 
+    /**
+     * Constructs a HomePage with navigation callback and user information.
+     * 
+     * @param navigate A callback function for navigating between pages in the
+     *                 application
+     * @param user     The currently logged-in user, or null if no user is logged
+     *                 in.
+     *                 Used to display a personalized welcome message and logout
+     *                 option.
+     */
     public HomePage(Consumer<String> navigate, AppUser user) {
         this.navigate = navigate;
         this.user = user;
     }
 
+    /**
+     * Creates and returns the main view of the home page.
+     * 
+     * The view consists of:
+     * - A themed background container
+     * - A centered white card with rounded corners and shadow
+     * - Navigation bar at the top
+     * - Welcome header with app title and subtitle
+     * - User welcome section (if user is logged in) with logout button
+     * - 3x2 grid of feature cards for navigation to different sections
+     * 
+     * The cards are arranged in a fixed grid:
+     * Row 1: Calendar, Login, About
+     * Row 2: Statistics, Settings, Backup & Restore
+     * 
+     * Loads and applies CSS styling from HomePage.css.
+     * 
+     * @return A JavaFX Node containing the complete home page UI
+     */
     public Node getView() {
         // 1. Root Container (Green Background)
         StackPane root = new StackPane();
@@ -96,10 +134,32 @@ public class HomePage {
         return root;
     }
 
+    /**
+     * Creates the navigation bar component for the home page.
+     * 
+     * @return An HBox containing the NavBar component with navigation capabilities
+     */
     private HBox createNavBar() {
         return new com.example.frontend.components.NavBar(navigate);
     }
 
+    /**
+     * Creates and adds a navigation card to the grid layout.
+     * 
+     * Each card displays a title and description, and navigates to the specified
+     * route when clicked. Cards are styled with CSS and positioned in a 3-column
+     * grid.
+     * 
+     * @param parent The GridPane container to add the card to
+     * @param index  The position index (0-5) determining the card's grid location.
+     *               Index is converted to row/column: col = index % 3, row = index
+     *               / 3
+     * @param title  The title text displayed on the card
+     * @param desc   The description text displayed below the title (supports text
+     *               wrapping)
+     * @param route  The navigation route to go to when the card is clicked (e.g.,
+     *               "/calendar")
+     */
     private void addCard(GridPane parent, int index, String title, String desc, String route) {
         VBox card = new VBox(10);
         card.getStyleClass().add("card");
@@ -118,6 +178,10 @@ public class HomePage {
         parent.add(card, col, row);
     }
 
+    /**
+     * Handles user logout by navigating to the logout route.
+     * This triggers the logout process and redirects to the logout page.
+     */
     private void handleLogout() {
         navigate.accept("/logout");
     }

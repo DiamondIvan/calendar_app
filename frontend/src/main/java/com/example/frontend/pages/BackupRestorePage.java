@@ -17,28 +17,86 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * BackupRestorePage provides UI for backing up and restoring event data.
+ * 
+ * This page communicates with the backend API to:
+ * - Create backups of event data with optional custom filenames
+ * - List available backup files
+ * - Restore data from backups with two modes:
+ * - Replace: Overwrites existing events
+ * - Append: Adds backup events to existing data
+ * 
+ * Features:
+ * - Asynchronous operations using JavaFX Tasks
+ * - Real-time status messages (success/error)
+ * - Automatic backup list refresh after creation
+ * - Error handling with user-friendly messages
+ * - Backend connectivity checks
+ */
 public class BackupRestorePage {
 
+    /** Text field for entering custom backup filename */
     private TextField backupNameField;
+
+    /** Dropdown for selecting which backup file to restore */
     private ComboBox<String> restoreFileBox;
+
+    /** Radio button for "replace existing events" restore mode */
     private RadioButton replaceRadio;
+
+    /** Radio button for "append to existing" restore mode */
     private RadioButton appendRadio;
+
+    /** Label for displaying status messages to the user */
     private Label messageLabel;
 
+    /** Button to trigger backup creation */
     private Button backupBtn;
+
+    /** Button to trigger data restoration */
     private Button restoreBtn;
 
+    /** API service for communicating with the backend */
     private final ApiService apiService = new ApiService();
 
+    /** Navigation callback for routing to other pages */
     private java.util.function.Consumer<String> navigate;
 
+    /**
+     * Default constructor with no navigation.
+     */
     public BackupRestorePage() {
     }
 
+    /**
+     * Constructor with navigation callback.
+     * 
+     * @param navigate Navigation callback for routing between pages
+     */
     public BackupRestorePage(java.util.function.Consumer<String> navigate) {
         this.navigate = navigate;
     }
 
+    /**
+     * Builds and returns the backup/restore page UI.
+     * 
+     * The page layout includes:
+     * - Header with title and subtitle
+     * - Navigation bar (if navigate callback is provided)
+     * - Message label for status updates
+     * - Backup section:
+     * - Optional filename input field
+     * - Create backup button
+     * - Restore section:
+     * - Dropdown to select backup file
+     * - Radio buttons for restore mode (replace/append)
+     * - Restore button
+     * 
+     * On load, automatically refreshes the list of available backups.
+     * 
+     * @return A BorderPane containing the complete backup/restore UI
+     */
     public Node getView() {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(20));
@@ -151,6 +209,21 @@ public class BackupRestorePage {
         return root;
     }
 
+    /**
+     * Handles the backup creation process.
+     * 
+     * Steps:
+     * 1. Retrieves optional backup name from the text field
+     * 2. Creates a JSON payload with the backup name
+     * 3. Disables UI controls and shows "Creating backup..." message
+     * 4. Sends asynchronous POST request to /api/backup/create
+     * 5. On success:
+     * - Shows success message
+     * - Refreshes backup list
+     * 6. On failure:
+     * - Shows formatted error message
+     * 7. Re-enables UI controls
+     */
     private void handleBackup() {
         String name = backupNameField.getText() == null ? "" : backupNameField.getText().trim();
         Map<String, Object> payload = new HashMap<>();
@@ -191,6 +264,18 @@ public class BackupRestorePage {
         t.start();
     }
 
+    /**
+     * Handles the data restoration process.
+     * 
+     * Steps:
+     * 1. Validates that a backup file is selected
+     * 2. Determines restore mode (replace or append)
+     * 3. Creates JSON payload with backup name and mode
+     * 4. Disables UI controls and shows "Restoring data..." message
+     * 5. Sends asynchronous POST request to /api/backup/restore
+     * 6. On success/failure, shows appropriate message
+     * 7. Re-enables UI controls
+     */
     private void handleRestore() {
         String selected = restoreFileBox.getValue();
         if (selected == null) {
@@ -234,6 +319,22 @@ public class BackupRestorePage {
         t.start();
     }
 
+    /**
+     * Refreshes the list of available backup files from the backend.
+     * 
+     * Steps:
+     * 1. Disables UI and shows "Loading backups..." message
+     * 2. Sends asynchronous GET request to /api/backup/list
+     * 3. Parses JSON response to extract backup file names
+     * 4. On success:
+     * - Populates the restore dropdown with backup names
+     * - Enables the dropdown
+     * - Shows "Backups loaded" or "No backups found" message
+     * 5. On failure:
+     * - Clears dropdown
+     * - Shows error message
+     * 6. Re-enables UI controls
+     */
     private void refreshBackupList() {
         setBusy(true);
         showMessage("Loading backups...", true);
@@ -285,6 +386,19 @@ public class BackupRestorePage {
         t.start();
     }
 
+    /**
+     * Enables or disables UI controls during async operations.
+     * 
+     * When busy (operation in progress):
+     * - Disables backup button
+     * - Disables restore button
+     * - Disables restore file dropdown
+     * 
+     * When not busy:
+     * - Enables backup and restore buttons
+     * 
+     * @param busy True to disable controls, false to enable them
+     */
     private void setBusy(boolean busy) {
         if (backupBtn != null) {
             backupBtn.setDisable(busy);
@@ -297,6 +411,15 @@ public class BackupRestorePage {
         }
     }
 
+    /**
+     * Displays a status message to the user.
+     * 
+     * Updates the message label with styled text.
+     * Applies CSS classes for success (green) or error (red) styling.
+     * 
+     * @param msg     The message text to display
+     * @param success True for success styling, false for error styling
+     */
     private void showMessage(String msg, boolean success) {
         messageLabel.setText(msg);
         messageLabel.setVisible(true);
@@ -304,6 +427,20 @@ public class BackupRestorePage {
         messageLabel.getStyleClass().add(success ? "success-message" : "error-message");
     }
 
+    /**
+     * Formats backend error messages in a user-friendly way.
+     * 
+     * Handles common error cases:
+     * - Connection errors: Shows "Cannot reach backend" message
+     * - Timeout errors: Shows connection failure message
+     * - Other errors: Shows the root cause exception message
+     * 
+     * Traverses the exception chain to find the root cause.
+     * 
+     * @param prefix Prefix text for the error message (e.g., "Backup failed")
+     * @param ex     The exception that occurred
+     * @return A formatted, user-friendly error message
+     */
     private String formatBackendError(String prefix, Throwable ex) {
         if (ex == null) {
             return prefix + ": Unknown error";

@@ -16,14 +16,54 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * EventCsvService manages event data persistence for the frontend using Jackson
+ * CSV processing.
+ * 
+ * This advanced service provides:
+ * - CRUD operations with Jackson ObjectMapper for type-safe CSV handling
+ * - Recurring event generation (daily, weekly, monthly, yearly)
+ * - Automatic validation and filtering of corrupted CSV entries
+ * - Separate storage for event data and recurrence rules
+ * - Thread-safe operations with synchronized methods
+ * - Automatic CSV file path resolution and initialization
+ * 
+ * Files managed:
+ * - events.csv: id,userId,title,description,startDateTime,endDateTime,category
+ * - recurrent.csv: eventId,recurrentInterval,recurrentTimes,recurrentEndDate
+ * 
+ * Uses Jackson CsvMapper with JavaTimeModule for LocalDateTime support.
+ * All operations filter out invalid/corrupted events automatically.
+ */
 public class EventCsvService {
 
+    /** Path to the events CSV file */
     private String csvPath;
+
+    /** Path to the recurrent events metadata CSV file */
     private String recurrentCsvPath;
+
+    /** Jackson CSV mapper configured for Event objects */
     private final CsvMapper mapper;
+
+    /** CSV schema for event data */
     private final CsvSchema eventSchema;
+
+    /** CSV schema for recurrence metadata */
     private final CsvSchema recurrentSchema;
 
+    /**
+     * Constructs an EventCsvService with Jackson CSV processing.
+     * 
+     * Initialization steps:
+     * 1. Creates and configures CsvMapper with JavaTimeModule
+     * 2. Disables timestamp serialization for readable dates
+     * 3. Configures to ignore unknown CSV columns
+     * 4. Defines event schema (7 columns)
+     * 5. Defines recurrence schema (4 columns)
+     * 6. Resolves CSV file paths
+     * 7. Initializes CSV files if they don't exist
+     */
     public EventCsvService() {
         this.mapper = new CsvMapper();
         this.mapper.registerModule(new JavaTimeModule());
@@ -55,6 +95,12 @@ public class EventCsvService {
         initializeCsv();
     }
 
+    /**
+     * Resolves CSV file paths by checking for existing files.
+     * 
+     * Currently only checks backend/csvFiles/events.csv.
+     * Sets both event and recurrent CSV paths to the backend folder.
+     */
     private void resolveCsvPath() {
         String[] possiblePaths = {
                 "backend/csvFiles/events.csv",
@@ -75,6 +121,9 @@ public class EventCsvService {
         recurrentCsvPath = "backend/csvFiles/recurrent.csv";
     }
 
+    /**
+     * Initializes both CSV files (events and recurrent).
+     */
     private void initializeCsv() {
         // 1. Initialize Events CSV
         initializeFile(csvPath, "id,userId,title,description,startDateTime,endDateTime,category\n");
@@ -82,6 +131,15 @@ public class EventCsvService {
         initializeFile(recurrentCsvPath, "eventId,recurrentInterval,recurrentTimes,recurrentEndDate\n");
     }
 
+    /**
+     * Initializes a single CSV file with header.
+     * 
+     * Creates parent directories if needed and writes the header row.
+     * Logs directory/file creation for debugging.
+     * 
+     * @param path   Path to the CSV file
+     * @param header Header row to write (e.g., "id,title,description")
+     */
     private void initializeFile(String path, String header) {
         if (path == null)
             return;
@@ -105,7 +163,18 @@ public class EventCsvService {
         }
     }
 
-    // Load all events from CSV
+    /**
+     * Loads all events from the CSV file using Jackson.
+     * 
+     * Automatically filters out invalid events:
+     * - Events with ID = 0 or userId = 0
+     * - Events without title or startDateTime
+     * - Malformed CSV rows
+     * 
+     * Thread-safe operation.
+     * 
+     * @return List of valid Event objects (empty if file doesn't exist)
+     */
     public synchronized List<Event> loadEvents() {
         if (csvPath == null)
             return new ArrayList<>();
@@ -141,6 +210,14 @@ public class EventCsvService {
         return baseEvents;
     }
 
+    /**
+     * Generates the next available event ID.
+     * 
+     * Finds maximum ID from all loaded events and returns max + 1.
+     * Thread-safe.
+     * 
+     * @return Next unique event ID (1 if no events exist)
+     */
     public synchronized int getNextId() {
         List<Event> events = loadEvents();
         if (events.isEmpty())
@@ -151,7 +228,22 @@ public class EventCsvService {
                 .orElse(0) + 1;
     }
 
-    // Append a single event to CSV
+    /**
+     * Saves a new event to the CSV file.
+     * 
+     * Process:
+     * 1. Loads all valid existing events
+     * 2. Auto-generates next ID for the new event
+     * 3. Validates event (userId, title, startDateTime required)
+     * 4. Adds event to list
+     * 5. Rewrites entire CSV file
+     * 
+     * Throws IllegalArgumentException if validation fails.
+     * Thread-safe operation.
+     * 
+     * @param event The event to save (ID will be auto-assigned)
+     * @throws IllegalArgumentException if event has invalid required fields
+     */
     public synchronized void saveEvent(Event event) {
         // Load only VALID events (corrupted ones will be filtered out)
         List<Event> validEvents = loadValidEventsForWriting();
@@ -190,6 +282,16 @@ public class EventCsvService {
         System.out.println("DEBUG: Successfully wrote " + validEvents.size() + " events to CSV");
     }
 
+    /**
+     * Escapes special CSV characters in a string value.
+     * 
+     * Wraps value in quotes if it contains: comma, quote, newline, or carriage
+     * return.
+     * Doubles any internal quotes for proper CSV escaping.
+     * 
+     * @param value The string to escape (null becomes empty string)
+     * @return CSV-safe escaped string
+     */
     private static String csvEscape(String value) {
         if (value == null) {
             return "";
@@ -204,6 +306,15 @@ public class EventCsvService {
         return "\"" + escaped + "\"";
     }
 
+    /**
+     * Writes a list of events to the CSV file.
+     * 
+     * Overwrites the entire file with header + all events.
+     * Uses custom CSV escaping for special characters.
+     * Thread-safe operation.
+     * 
+     * @param events The complete list of events to write
+     */
     private synchronized void writeEventsToCsv(List<Event> events) {
         if (csvPath == null) {
             return;
@@ -237,8 +348,20 @@ public class EventCsvService {
         }
     }
 
-    // Load only valid events for writing back to CSV (filters out corrupted
-    // entries)
+    /**
+     * Loads only valid events for write operations.
+     * 
+     * Filters out events with:
+     * - ID = 0 or userId = 0
+     * - Empty/null title
+     * - Null startDateTime
+     * - Malformed CSV data
+     * 
+     * This defensive method ensures corrupted data doesn't propagate.
+     * Thread-safe.
+     * 
+     * @return List of validated events safe for writing
+     */
     private synchronized List<Event> loadValidEventsForWriting() {
         if (csvPath == null)
             return new ArrayList<>();
@@ -274,6 +397,16 @@ public class EventCsvService {
         return validEvents;
     }
 
+    /**
+     * Saves recurrence metadata for an event.
+     * 
+     * Appends recurrence rules to recurrent.csv file.
+     * 
+     * @param eventId  The event's ID
+     * @param interval Recurrence interval code (e.g., "1d", "1w", "1m")
+     * @param times    Number of occurrences
+     * @param endDate  End date for recurrence (can be null)
+     */
     private void saveRecurrence(int eventId, String interval, String times, String endDate) {
         if (recurrentCsvPath == null)
             return;
@@ -310,6 +443,28 @@ public class EventCsvService {
         }
     }
 
+    /**
+     * Generates and saves multiple recurring event instances.
+     * 
+     * Process:
+     * 1. Validates base event
+     * 2. Saves base event with auto-assigned ID
+     * 3. Saves recurrence metadata if interval is set
+     * 4. Generates recurring instances based on interval:
+     * - 1d: Daily
+     * - 1w: Weekly
+     * - 1m: Monthly
+     * - 1y: Yearly
+     * 5. Stops when:
+     * - Reaches endDate (if set)
+     * - Reaches occurrence limit (if times is set)
+     * - Reaches default limit of 50 instances
+     * 
+     * All instances share the same title, description, category, and user.
+     * Thread-safe operation.
+     * 
+     * @param baseEvent The base event with recurrence parameters set
+     */
     public synchronized void generateAndSaveRecurringEvents(Event baseEvent) {
         String intervalCode = baseEvent.getRecurrentInterval();
         String timesStr = baseEvent.getRecurrentTimes();
@@ -412,7 +567,18 @@ public class EventCsvService {
         System.out.println("DEBUG: Generated recurring events. Total events saved: " + validEvents.size());
     }
 
-    // Update an existing event
+    /**
+     * Updates an existing event.
+     * 
+     * Loads all valid events, finds the matching event by ID,
+     * replaces it, and rewrites the CSV file.
+     * 
+     * Preserves the original event ID.
+     * Thread-safe operation.
+     * 
+     * @param eventId      The ID of the event to update
+     * @param updatedEvent The event with new data
+     */
     public synchronized void updateEvent(int eventId, Event updatedEvent) {
         List<Event> events = loadValidEventsForWriting(); // Use valid events only
         boolean found = false;
@@ -436,7 +602,14 @@ public class EventCsvService {
         System.out.println("Event " + eventId + " updated successfully");
     }
 
-    // Delete an event by ID
+    /**
+     * Deletes an event by ID.
+     * 
+     * Also deletes any associated recurrence rules.
+     * Thread-safe operation.
+     * 
+     * @param eventId The ID of the event to delete
+     */
     public synchronized void deleteEvent(int eventId) {
         List<Event> events = loadValidEventsForWriting(); // Use valid events only
         boolean removed = events.removeIf(e -> e.getId() == eventId);
@@ -453,7 +626,14 @@ public class EventCsvService {
         deleteRecurrenceRule(eventId);
     }
 
-    // Delete recurrence rule for an event
+    /**
+     * Deletes recurrence metadata for an event.
+     * 
+     * Removes the event's entry from recurrent.csv.
+     * Thread-safe operation.
+     * 
+     * @param eventId The event ID whose recurrence rules should be deleted
+     */
     private synchronized void deleteRecurrenceRule(int eventId) {
         if (recurrentCsvPath == null)
             return;

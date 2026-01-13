@@ -12,20 +12,54 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REST controller for user account management.
+ * 
+ * Provides HTTP endpoints for:
+ * - User registration and login authentication
+ * - Email existence checking
+ * - User CRUD operations
+ * - Cascade deletion (user + events + recurrence rules)
+ * 
+ * Base URL: /api/users
+ * 
+ * Security Note: Passwords are stored in plain text (NOT production-ready).
+ * For production, implement proper password hashing (bcrypt, etc.).
+ * 
+ * Uses UserCsvService, EventCsvService, and RecurrentCsvService.
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
+    /** Service handling user data operations */
     private final UserCsvService userService;
+
+    /** Service for managing user's events (needed for cascade delete) */
     private final EventCsvService eventService;
+
+    /** Service for managing recurrence rules (needed for cascade delete) */
     private final RecurrentCsvService recurrentService;
 
+    /**
+     * Constructs a UserController with new service instances.
+     */
     public UserController() {
         this.userService = new UserCsvService();
         this.eventService = new EventCsvService();
         this.recurrentService = new RecurrentCsvService();
     }
 
+    /**
+     * Retrieves all users.
+     * 
+     * Warning: Returns all user data including passwords (not secure).
+     * 
+     * Response (200 OK): List of all AppUser objects
+     * Response (500): Empty response on error
+     * 
+     * @return ResponseEntity containing list of all users
+     */
     @GetMapping
     public ResponseEntity<List<AppUser>> getAllUsers() {
         try {
@@ -36,6 +70,37 @@ public class UserController {
         }
     }
 
+    /**
+     * Registers a new user account.
+     * 
+     * Request body: AppUser object
+     * 
+     * Validation:
+     * - email: Required, non-empty, unique
+     * - password: Required, non-empty
+     * 
+     * ID is auto-generated during save.
+     * 
+     * Response (201 Created):
+     * - success: true
+     * - message: "User registered successfully"
+     * - user: Created AppUser object with assigned ID
+     * 
+     * Response (400 Bad Request):
+     * - success: false
+     * - message: "Email is required" or "Password is required"
+     * 
+     * Response (409 Conflict):
+     * - success: false
+     * - message: "Email already exists"
+     * 
+     * Response (500):
+     * - success: false
+     * - message: Error description
+     * 
+     * @param user AppUser object to register
+     * @return ResponseEntity with created user or error
+     */
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> registerUser(@RequestBody AppUser user) {
         Map<String, Object> response = new HashMap<>();
@@ -71,6 +136,33 @@ public class UserController {
         }
     }
 
+    /**
+     * Authenticates a user login attempt.
+     * 
+     * Request body: AppUser object with email and password
+     * 
+     * Performs exact match on email and password (plain text comparison).
+     * 
+     * Response (200 OK):
+     * - success: true
+     * - message: "Login successful"
+     * - user: AppUser object (with ID, name, email, password)
+     * 
+     * Response (400 Bad Request):
+     * - success: false
+     * - message: "Email and password are required"
+     * 
+     * Response (401 Unauthorized):
+     * - success: false
+     * - message: "Invalid email or password"
+     * 
+     * Response (500):
+     * - success: false
+     * - message: Error description
+     * 
+     * @param credentials AppUser object containing email and password
+     * @return ResponseEntity with user data or error
+     */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@RequestBody AppUser credentials) {
         Map<String, Object> response = new HashMap<>();
@@ -101,6 +193,22 @@ public class UserController {
         }
     }
 
+    /**
+     * Checks if an email address is already registered.
+     * 
+     * Query parameter:
+     * - email: Email address to check
+     * 
+     * Useful for real-time validation during registration.
+     * 
+     * Response (200 OK):
+     * - exists: true if email is registered, false otherwise
+     * 
+     * Response (500): Empty response on error
+     * 
+     * @param email Email address to check
+     * @return ResponseEntity with existence status
+     */
     @GetMapping("/check-email")
     public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
         Map<String, Boolean> response = new HashMap<>();
@@ -113,6 +221,41 @@ public class UserController {
         }
     }
 
+    /**
+     * Updates an existing user's information.
+     * 
+     * Path parameter:
+     * - userId: ID of user to update
+     * 
+     * Request body: AppUser object with updated fields
+     * 
+     * Validation:
+     * - User must exist
+     * - If changing email, new email must be unique
+     * 
+     * The user ID is preserved (cannot be changed).
+     * 
+     * Response (200 OK):
+     * - success: true
+     * - message: "User updated successfully"
+     * - user: Updated AppUser object
+     * 
+     * Response (404 Not Found):
+     * - success: false
+     * - message: "User not found"
+     * 
+     * Response (409 Conflict):
+     * - success: false
+     * - message: "Email already exists"
+     * 
+     * Response (500):
+     * - success: false
+     * - message: Error description
+     * 
+     * @param userId      ID of user to update
+     * @param updatedUser AppUser object with new data
+     * @return ResponseEntity with updated user or error
+     */
     @PutMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> updateUser(@PathVariable int userId, @RequestBody AppUser updatedUser) {
         Map<String, Object> response = new HashMap<>();
@@ -155,6 +298,36 @@ public class UserController {
         }
     }
 
+    /**
+     * Deletes a user account with cascade deletion.
+     * 
+     * Path parameter:
+     * - userId: ID of user to delete
+     * 
+     * Deletion process (in order):
+     * 1. Retrieves all event IDs created by this user
+     * 2. Deletes recurrence rules for those events
+     * 3. Deletes all events created by this user
+     * 4. Deletes the user account
+     * 
+     * This ensures complete data cleanup and prevents orphaned records.
+     * 
+     * Response (200 OK):
+     * - success: true
+     * - message: "User and all associated events and recurrent rules deleted
+     * successfully"
+     * 
+     * Response (404 Not Found):
+     * - success: false
+     * - message: "User not found"
+     * 
+     * Response (500):
+     * - success: false
+     * - message: Error description
+     * 
+     * @param userId ID of user to delete
+     * @return ResponseEntity with success status or error
+     */
     @DeleteMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable int userId) {
         Map<String, Object> response = new HashMap<>();
@@ -162,15 +335,15 @@ public class UserController {
         try {
             // First, get all event IDs for this user
             List<Integer> eventIds = eventService.getEventIdsByUserId(userId);
-            
+
             // Delete recurrent rules for these events
             if (!eventIds.isEmpty()) {
                 recurrentService.deleteRecurrentRulesByEventIds(eventIds);
             }
-            
+
             // Then, delete all events created by this user
             eventService.deleteEventsByUserId(userId);
-            
+
             // Finally, delete the user
             boolean success = userService.deleteUser(userId);
             if (success) {

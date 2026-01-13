@@ -21,26 +21,76 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * StatisticsPage displays event analytics and distribution by category.
+ * 
+ * This page provides visual statistics using a bar chart that shows:
+ * - Distribution of user events across different categories
+ * - Holiday events count
+ * - Interactive visualization of event data
+ * 
+ * The page supports:
+ * - Navigation bar integration
+ * - User-specific event filtering
+ * - Automatic inclusion of holiday data
+ * - CSS styling from Statistics.css
+ */
 public class StatisticsPage {
 
+    /** Navigation callback for switching between pages */
     private final Consumer<String> navigate;
+
+    /** Service for loading and managing event data */
     private final EventCsvService eventService;
+
+    /** Currently logged-in user (used for filtering events) */
     private final AppUser currentUser;
 
+    /**
+     * Default constructor with no navigation, new event service, and no user.
+     * Used primarily for testing.
+     */
     public StatisticsPage() {
         this(null, new EventCsvService(), null);
     }
 
+    /**
+     * Constructor with navigation callback only.
+     * Creates a new EventCsvService and no user context.
+     * 
+     * @param navigate Navigation callback for page routing
+     */
     public StatisticsPage(Consumer<String> navigate) {
         this(navigate, new EventCsvService(), null);
     }
 
+    /**
+     * Full constructor with all dependencies.
+     * 
+     * @param navigate     Navigation callback for page routing (can be null)
+     * @param eventService Service for managing events (creates new if null)
+     * @param currentUser  Currently logged-in user for filtering (can be null)
+     */
     public StatisticsPage(Consumer<String> navigate, EventCsvService eventService, AppUser currentUser) {
         this.navigate = navigate;
         this.eventService = (eventService != null) ? eventService : new EventCsvService();
         this.currentUser = currentUser;
     }
 
+    /**
+     * Builds and returns the statistics page UI.
+     * 
+     * Creates a visual representation of event statistics including:
+     * - Navigation bar (if navigate callback is provided)
+     * - Page title
+     * - Bar chart showing event distribution by category
+     * - Data for both user events and holidays
+     * 
+     * The chart displays all category types with their respective event counts.
+     * User events are filtered by the current user's ID.
+     * 
+     * @return A VBox containing the complete statistics page UI
+     */
     public Node getView() {
         VBox root = new VBox(20);
 
@@ -87,6 +137,20 @@ public class StatisticsPage {
         return root;
     }
 
+    /**
+     * Counts events by category for the current user.
+     * 
+     * This method:
+     * 1. Initializes all categories with zero count
+     * 2. Adds all holidays to the HOLIDAY category count
+     * 3. Filters user events by current user ID
+     * 4. Counts events in each category
+     * 
+     * Null events are skipped, and events are filtered to show only
+     * those belonging to the current user (or none if no user logged in).
+     * 
+     * @return A map of categories to their event counts
+     */
     private Map<Category, Long> countEventsByCategory() {
         Map<Category, Long> counts = new EnumMap<>(Category.class);
         for (Category c : Category.values()) {
@@ -116,6 +180,16 @@ public class StatisticsPage {
         return counts;
     }
 
+    /**
+     * Resolves a category ID string to a Category enum.
+     * 
+     * Performs case-insensitive matching against category IDs.
+     * If the category ID is null or doesn't match any known category,
+     * defaults to PROFESSIONAL.
+     * 
+     * @param categoryId The category ID string to resolve (case-insensitive)
+     * @return The matching Category enum, or PROFESSIONAL as default
+     */
     private Category resolveCategory(String categoryId) {
         if (categoryId == null) {
             return Category.PROFESSIONAL;

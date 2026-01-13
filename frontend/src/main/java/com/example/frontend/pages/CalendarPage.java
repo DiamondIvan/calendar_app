@@ -35,35 +35,106 @@ import java.util.Set;
 import java.util.Comparator;
 import java.util.function.Consumer;
 
+/**
+ * CalendarPage displays an interactive monthly calendar view with event
+ * management.
+ * 
+ * This is the main calendar UI component providing:
+ * 
+ * **Core Features:**
+ * - Monthly calendar grid with week-based layout (Sunday-Saturday)
+ * - Event display with category-based color coding
+ * - Selected date tracking with animated visual feedback
+ * - Public holidays integration (always visible)
+ * - User-specific event filtering
+ * 
+ * **Interactive Features:**
+ * - Click dates to select/deselect with fade animations
+ * - Search events with live filtering and autocomplete suggestions
+ * - Category filtering with checkboxes
+ * - Date range search dialog
+ * - Event creation, editing, and deletion
+ * - Month navigation (prev/next)
+ * 
+ * **Visual Customization:**
+ * - 7 predefined color themes with gradients
+ * - Theme affects: background, sidebar, buttons, hover states
+ * - Theme persistence via ThemeManager
+ * 
+ * **Data Management:**
+ * - Loads events from EventCsvService
+ * - Filters events by user ID
+ * - Includes Malaysian public holidays for 2026
+ * - Real-time calendar updates on data changes
+ * 
+ * Layout: NavBar + Header Bar + (Left Sidebar | Calendar Grid)
+ */
 public class CalendarPage {
 
+    /** Navigation callback for routing to other pages */
     private final Consumer<String> navigate;
+
+    /** Service for loading/saving events from CSV */
     private final EventCsvService eventService;
+
+    /** Currently logged-in user (null for anonymous) */
     private final AppUser currentUser;
 
+    /** Current month/year being displayed */
     private YearMonth currentYearMonth;
-    private LocalDate selectedDate; // Track selected date (nullable when deselected)
+
+    /** Currently selected date (null when deselected) */
+    private LocalDate selectedDate;
+
+    /** All events (user events + public holidays) */
     private List<CalendarEvent> events;
+
+    /** Set of active category IDs for filtering (all enabled by default) */
     private Set<String> activeFilters = new HashSet<>();
 
+    /** Label showing current month and year in header */
     private Label monthYearLabel;
+
+    /** Grid pane containing the calendar cells */
     private GridPane calendarGrid;
+
+    /** Search text field with autocomplete */
     private TextField searchField;
 
+    /** Map of date to selection overlay for animations */
     private final Map<LocalDate, Region> selectionOverlayByDate = new HashMap<>();
 
     // Side Panel Components
+    /** Sidebar label showing selected day number */
     private Label sideCurrentDateNum;
+
+    /** Sidebar label showing selected month */
     private Label sideCurrentMonth;
+
+    /** Sidebar label showing selected year */
     private Label sideCurrentYear;
-    private Rectangle sideColorBox; // Promoted to field for referencing
-    private Button catBtn; // Promoted to field
-    private Button createBtn; // Promoted to field
+
+    /** Sidebar colored rectangle indicating theme */
+    private Rectangle sideColorBox;
+
+    /** Category filter button */
+    private Button catBtn;
+
+    /** Create event navigation button */
+    private Button createBtn;
+
+    /** Previous month navigation button */
     private Button prevBtn;
+
+    /** Next month navigation button */
     private Button nextBtn;
 
-    // Side Panel Components
-
+    /**
+     * Converts a JavaFX Color to hex string format.
+     * 
+     * @param color The JavaFX Color object
+     * @return Hex color string (e.g., "#FF5733")
+     */
     private static String toHex(Color color) {
         int r = (int) Math.round(color.getRed() * 255);
         int g = (int) Math.round(color.getGreen() * 255);
@@ -71,6 +142,15 @@ public class CalendarPage {
         return String.format("#%02X%02X%02X", r, g, b);
     }
 
+    /**
+     * Sets the text fill color of a label using inline CSS.
+     * 
+     * Safely replaces existing -fx-text-fill style or adds it.
+     * Preserves other existing styles.
+     * 
+     * @param label The label to style (null-safe)
+     * @param color The text color
+     */
     private static void setInlineTextFill(Label label, Color color) {
         if (label == null) {
             return;
@@ -90,6 +170,23 @@ public class CalendarPage {
         }
     }
 
+    /**
+     * Applies a complete theme to the calendar page.
+     * 
+     * Updates:
+     * - Main container background (gradient)
+     * - Sidebar color box
+     * - Sidebar text colors (date, month, year)
+     * - All buttons (colors, borders, hover effects)
+     * 
+     * Persists theme via ThemeManager for cross-page consistency.
+     * 
+     * @param mainContainer      The root VBox container
+     * @param userSelectedColor  Sidebar/accent color (e.g., "#90caf9")
+     * @param buttonColor        Primary button color
+     * @param hoverButtonColor   Button hover state color
+     * @param backgroundGradient CSS gradient for background
+     */
     private void applyTheme(
             VBox mainContainer,
             String userSelectedColor,
@@ -171,6 +268,19 @@ public class CalendarPage {
         }
     }
 
+    /**
+     * Constructs a CalendarPage with full dependencies.
+     * 
+     * Initializes:
+     * - Current month to today
+     * - Selected date to today
+     * - All category filters enabled
+     * - Loads events from backend (user events + holidays)
+     * 
+     * @param navigate     Navigation callback for routing
+     * @param eventService Service for event data operations
+     * @param currentUser  The logged-in user (null for anonymous)
+     */
     public CalendarPage(Consumer<String> navigate, EventCsvService eventService, AppUser currentUser) {
         this.navigate = navigate;
         this.eventService = eventService;
@@ -188,10 +298,26 @@ public class CalendarPage {
         loadEventsFromBackend();
     }
 
+    /**
+     * Default constructor with no navigation and mock dependencies.
+     * Used for testing or standalone instances.
+     */
     public CalendarPage() {
         this(null, new EventCsvService(), null);
     }
 
+    /**
+     * Loads all events from backend and holiday data.
+     * 
+     * Process:
+     * 1. Clears existing events
+     * 2. Loads Malaysian public holidays for 2026
+     * 3. Loads user-created events from CSV
+     * 4. Filters events by current user ID
+     * 5. Converts to CalendarEvent format with category colors
+     * 
+     * Skips events that fail to parse (defensive).
+     */
     private void loadEventsFromBackend() {
         this.events.clear();
 
@@ -235,7 +361,14 @@ public class CalendarPage {
         }
     }
 
-    // Helper to map category name to color code (since we might be using IDs)
+    /**
+     * Resolves a category ID to its corresponding color hex code.
+     * 
+     * Matches category string (case-insensitive) against Category enum.
+     * 
+     * @param categoryId The category ID string (can be null)
+     * @return Hex color code (defaults to "#4CAF50" green if not found)
+     */
     private String ResolveCategoryColor(String categoryId) {
         if (categoryId == null)
             return "#4CAF50";
@@ -247,6 +380,20 @@ public class CalendarPage {
         return "#4CAF50"; // Default green
     }
 
+    /**
+     * Builds and returns the complete calendar page UI.
+     * 
+     * Layout structure:
+     * - NavBar (top)
+     * - Header bar (month navigation, search, filters, create button)
+     * - Content area:
+     * - Left sidebar (date display, theme selector)
+     * - Right calendar grid (interactive monthly calendar)
+     * 
+     * Applies persisted theme on load.
+     * 
+     * @return The complete calendar UI as a Node
+     */
     public Node getView() {
         // Main Container with default gradient background
         VBox mainContainer = new VBox(20);
@@ -300,6 +447,21 @@ public class CalendarPage {
         return mainContainer;
     }
 
+    /**
+     * Creates the header bar with navigation and controls.
+     * 
+     * Contains (left to right):
+     * - Prev month button
+     * - Month/year label
+     * - Next month button
+     * - Spacer
+     * - Search field with autocomplete
+     * - Category filter button
+     * - Date search button (📅)
+     * - Create event button
+     * 
+     * @return HBox containing all header elements
+     */
     private HBox createHeaderBar() {
         HBox header = new HBox(15);
         header.setAlignment(Pos.CENTER_LEFT);
@@ -357,10 +519,28 @@ public class CalendarPage {
         return header;
     }
 
+    /**
+     * Sets up the date search button action.
+     * Opens the date range search dialog when clicked.
+     * 
+     * @param viewBtn The 📅 button to configure
+     */
     private void setupDateSearchButton(Button viewBtn) {
         viewBtn.setOnAction(e -> showDateSearchDialog());
     }
 
+    /**
+     * Shows a dialog for searching events by date range.
+     * 
+     * Features:
+     * - Start and end date pickers (default to selected date or today)
+     * - Search button to find events in range
+     * - Results list showing matching events
+     * - Respects current search text and category filters
+     * - Displays events sorted by start time
+     * 
+     * Results format: "YYYY-MM-DD HH:MM - Title (CATEGORY)"
+     */
     private void showDateSearchDialog() {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Search Events by Date");
@@ -446,6 +626,21 @@ public class CalendarPage {
         dialog.showAndWait();
     }
 
+    /**
+     * Creates the left sidebar with date display and theme selector.
+     * 
+     * Components:
+     * - Large date number (selected day)
+     * - Month name
+     * - Year
+     * - Colored rectangle (current theme accent)
+     * - Theme selector (7 color squares)
+     * 
+     * Clicking a theme square applies the theme to the entire page.
+     * 
+     * @param mainContainer The main VBox to apply themes to
+     * @return VBox containing the complete sidebar
+     */
     private VBox createLeftSidebar(VBox mainContainer) {
         VBox sidebar = new VBox(20);
         sidebar.getStyleClass().add("sidebar-card");
@@ -510,6 +705,26 @@ public class CalendarPage {
         return sidebar;
     }
 
+    /**
+     * Updates the calendar grid with current month's dates and events.
+     * 
+     * Process:
+     * 1. Clears existing grid and overlay map
+     * 2. Updates month/year labels
+     * 3. Creates 7-column grid (Sunday-Saturday)
+     * 4. Adds header row with day names
+     * 5. Adds date cells for:
+     * - Previous month filler (hidden)
+     * - Current month (visible with events)
+     * - Next month filler (hidden)
+     * 6. Each cell shows:
+     * - Date number
+     * - Events matching filters and search
+     * - Background color based on first event
+     * - Selection overlay if selected
+     * 
+     * Grid typically spans 6-7 rows to accommodate all dates.
+     */
     private void updateCalendar() {
         calendarGrid.getChildren().clear();
         calendarGrid.getColumnConstraints().clear();
@@ -600,6 +815,16 @@ public class CalendarPage {
         }
     }
 
+    /**
+     * Animates a selection overlay's opacity with a fade transition.
+     * 
+     * Uses 160ms fade animation for smooth visual feedback.
+     * 
+     * @param overlay    The Region to fade (null-safe)
+     * @param from       Starting opacity (0.0 to 1.0)
+     * @param to         Target opacity (0.0 to 1.0)
+     * @param onFinished Callback to run after animation completes (can be null)
+     */
     private void fadeSelectionOverlay(Region overlay, double from, double to, Runnable onFinished) {
         if (overlay == null) {
             return;
@@ -616,6 +841,18 @@ public class CalendarPage {
         ft.play();
     }
 
+    /**
+     * Updates the selected date with animated visual feedback.
+     * 
+     * Behavior:
+     * - If clicking already-selected date: Deselects (fade out)
+     * - If selecting new date:
+     * 1. Fades out old selection
+     * 2. Fades in new selection
+     * 3. Updates selectedDate field
+     * 
+     * @param newDate The date to select (ignored if null)
+     */
     private void setSelectedDateAnimated(LocalDate newDate) {
         if (newDate == null) {
             return;
@@ -649,6 +886,28 @@ public class CalendarPage {
         }
     }
 
+    /**
+     * Creates a single calendar day cell.
+     * 
+     * Cell contents:
+     * - Selection overlay (blue border/background when selected)
+     * - Date number (top-right)
+     * - Event labels (colored badges, clickable)
+     * - Background tint (based on first event's category)
+     * 
+     * Clicking cell:
+     * - Updates selection with animation
+     * - Updates sidebar date display
+     * 
+     * Clicking event label:
+     * - Opens event options dialog (edit/delete)
+     * 
+     * Other month cells are invisible.
+     * 
+     * @param date         The date for this cell
+     * @param isOtherMonth True if date is from prev/next month
+     * @return StackPane containing the complete day cell
+     */
     private StackPane createDayCell(LocalDate date, boolean isOtherMonth) {
         StackPane cellRoot = new StackPane();
         VBox content = new VBox(5);
@@ -751,6 +1010,21 @@ public class CalendarPage {
         return cellRoot;
     }
 
+    /**
+     * Sets up search field with live filtering and autocomplete.
+     * 
+     * Features:
+     * 1. **Live filtering**: Updates calendar view as user types
+     * 2. **Autocomplete suggestions**:
+     * - Shows menu with matching event titles
+     * - Click suggestion to:
+     * a. Navigate to event's month
+     * b. Set search text to exact title
+     * c. Update calendar view
+     * 3. **Debounced search**: Updates on every keystroke
+     * 
+     * Suggestions are deduplicated by title.
+     */
     private void setupSearchField() {
         ContextMenu searchSuggestions = new ContextMenu();
         searchSuggestions.setMinWidth(200); // Set a minimum width for better visibility
@@ -805,6 +1079,17 @@ public class CalendarPage {
         });
     }
 
+    /**
+     * Sets up the category filter button with checkboxes.
+     * 
+     * Creates a context menu with:
+     * - One CheckMenuItem per Category
+     * - All checked by default
+     * - Checking/unchecking updates activeFilters set
+     * - Updates calendar view on change
+     * 
+     * @param btn The category button to configure
+     */
     private void setupCategoryButton(Button btn) {
         ContextMenu contextMenu = new ContextMenu();
         // Add CheckMenuItems for each category
@@ -827,6 +1112,20 @@ public class CalendarPage {
         });
     }
 
+    /**
+     * Shows a dialog with event options (View/Edit/Delete).
+     * 
+     * For holidays:
+     * - Shows simple info dialog (read-only)
+     * 
+     * For user events:
+     * - Shows dialog with event details
+     * - Buttons: Edit, Delete (red), Cancel
+     * - Edit: Opens edit form dialog
+     * - Delete: Opens confirmation dialog
+     * 
+     * @param event The CalendarEvent to show options for
+     */
     private void showEventOptionsDialog(CalendarEvent event) {
         if (event != null && event.getCategory() != null
                 && event.getCategory().equalsIgnoreCase(Category.HOLIDAY.getId())) {
@@ -876,6 +1175,25 @@ public class CalendarPage {
         });
     }
 
+    /**
+     * Opens a dialog to edit an existing event.
+     * 
+     * Form fields:
+     * - Title (TextField)
+     * - Description (TextArea, 3 rows)
+     * - Start Date (DatePicker)
+     * - Start Time (ComboBox with 15-min slots)
+     * - End Date (DatePicker)
+     * - End Time (ComboBox with 15-min slots)
+     * - Category (ComboBox with all categories)
+     * 
+     * On Save:
+     * - Updates event via eventService.updateEvent()
+     * - Reloads events and refreshes calendar
+     * - Shows success message
+     * 
+     * @param event The CalendarEvent to edit
+     */
     private void editEvent(CalendarEvent event) {
         // Find the actual event from the service
         List<Event> dbEvents = eventService.loadEvents();
@@ -977,6 +1295,17 @@ public class CalendarPage {
         });
     }
 
+    /**
+     * Deletes an event after confirmation.
+     * 
+     * Shows confirmation dialog with warning.
+     * On confirm:
+     * - Deletes via eventService.deleteEvent()
+     * - Reloads events and refreshes calendar
+     * - Shows success/error message
+     * 
+     * @param event The CalendarEvent to delete
+     */
     private void deleteEvent(CalendarEvent event) {
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Confirm Delete");
@@ -999,6 +1328,14 @@ public class CalendarPage {
         });
     }
 
+    /**
+     * Generates time slot strings for time pickers.
+     * 
+     * Creates 96 time slots (24 hours × 4 quarters):
+     * - 00:00, 00:15, 00:30, 00:45, ..., 23:45
+     * 
+     * @return List of time strings in HH:MM format
+     */
     private java.util.List<String> generateTimeSlots() {
         java.util.List<String> times = new java.util.ArrayList<>();
         for (int h = 0; h < 24; h++) {
@@ -1009,6 +1346,12 @@ public class CalendarPage {
         return times;
     }
 
+    /**
+     * Shows a simple information alert.
+     * 
+     * @param title   Alert dialog title
+     * @param content Alert message content
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

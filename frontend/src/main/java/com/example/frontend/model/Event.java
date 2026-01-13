@@ -2,6 +2,22 @@ package com.example.frontend.model;
 
 import java.time.LocalDateTime;
 
+/**
+ * Event represents a calendar event with scheduling, recurrence, and
+ * categorization information.
+ * 
+ * Key features:
+ * - Basic event details: title, description, start/end date-time
+ * - User association: each event belongs to a specific user (userId)
+ * - Recurrence support: events can repeat with configurable intervals and end
+ * conditions
+ * - Categorization: events can be assigned to categories for organization
+ * 
+ * Recurrence fields:
+ * - recurrentInterval: "daily", "weekly", "monthly", etc.
+ * - recurrentTimes: Number of times to repeat, or null for unlimited
+ * - recurrentEndDate: End date for recurrence, or null if using recurrentTimes
+ */
 public class Event {
     private int id;
     private int userId;
@@ -16,6 +32,10 @@ public class Event {
 
     private String category;
 
+    /**
+     * Default constructor for creating an empty Event.
+     * Typically used for JSON deserialization or builders.
+     */
     public Event() {
     }
 

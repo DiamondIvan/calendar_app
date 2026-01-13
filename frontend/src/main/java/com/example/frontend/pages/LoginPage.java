@@ -14,6 +14,27 @@ import java.util.function.Consumer;
 import com.example.frontend.service.UserCsvService;
 import com.example.frontend.model.AppUser;
 
+/**
+ * LoginPage provides an animated authentication interface with sliding
+ * transitions.
+ * 
+ * Features a modern sliding overlay design that switches between Sign In and
+ * Sign Up modes:
+ * - Animated overlay panel that slides left/right with smooth transitions
+ * - Dual-mode interface: Sign In (default) and Sign Up
+ * - Theme-aware color scheme that adapts to calendar theme selection
+ * - Social login placeholders (Google+, Facebook, LinkedIn, etc.)
+ * - Form validation and user feedback via alerts
+ * 
+ * Architecture:
+ * - Fixed 900x600 container with forms taking 60% width and overlay 45% width
+ * - Forms positioned on left/right, overlay slides to reveal active form
+ * - Uses JavaFX TranslateTransition for smooth 650ms animations
+ * - Integrates with UserCsvService for authentication and registration
+ * 
+ * The page automatically applies colors based on the calendar theme selection,
+ * ensuring visual consistency across the application.
+ */
 public class LoginPage {
 
     private final Consumer<String> navigate;
@@ -38,12 +59,40 @@ public class LoginPage {
     private boolean isSignInActive = true;
     private boolean isAnimating = false;
 
+    /**
+     * Constructs a LoginPage with navigation, user service, and app reference.
+     * 
+     * @param navigate    Callback function for navigating between pages
+     * @param userService Service for user authentication and registration
+     *                    operations
+     * @param app         Reference to the main App instance for setting the current
+     *                    user after login
+     */
     public LoginPage(Consumer<String> navigate, UserCsvService userService, App app) {
         this.navigate = navigate;
         this.userService = userService;
         this.app = app;
     }
 
+    /**
+     * Creates and returns the complete login page view with sliding animation.
+     * 
+     * The view structure:
+     * 1. Outer BorderPane with themed background
+     * 2. Navigation bar centered at top
+     * 3. Main container (900x600) with three layers:
+     * - Sign In form (left, initially visible)
+     * - Sign Up form (right, initially hidden)
+     * - Sliding overlay panel (starts at right, slides to reveal forms)
+     * 
+     * The overlay contains two states:
+     * - Right position: Shows "Hello, Friend!" to encourage sign up
+     * - Left position: Shows "Welcome Back!" to encourage sign in
+     * 
+     * Loads LoginPage.css for styling and applies theme colors.
+     * 
+     * @return A JavaFX Node containing the complete animated login interface
+     */
     public Node getView() {
         // Root Container that holds the centered card
         BorderPane outerRoot = new BorderPane();
@@ -134,6 +183,21 @@ public class LoginPage {
         return outerRoot;
     }
 
+    /**
+     * Applies theme-aware color scheme to the login page.
+     * 
+     * Uses ThemeManager to:
+     * - Apply background gradient matching the calendar theme
+     * - Get primary and secondary colors based on sidebar color selection
+     * - Style the overlay panel with gradient from primary to secondary
+     * - Apply colors to Sign In and Sign Up buttons
+     * 
+     * The color scheme automatically updates when the calendar sidebar color
+     * changes,
+     * providing visual cohesion across the application.
+     * 
+     * @param outerRoot The root BorderPane to apply the background theme to
+     */
     private void applyLoginScheme(BorderPane outerRoot) {
         ThemeManager themeManager = ThemeManager.getInstance();
 
@@ -153,6 +217,13 @@ public class LoginPage {
         themeSolidButton(signUpBtn, primary, secondary);
     }
 
+    /**
+     * Applies themed solid colors to a button with hover effects.
+     * 
+     * @param button   The button to style (if null, method returns immediately)
+     * @param normalBg Normal state background color
+     * @param hoverBg  Hover state background color
+     */
     private void themeSolidButton(Button button, String normalBg, String hoverBg) {
         if (button == null) {
             return;
@@ -163,6 +234,23 @@ public class LoginPage {
         button.setOnMouseExited(e -> button.setStyle("-fx-background-color: " + normalBg + "; -fx-text-fill: white;"));
     }
 
+    /**
+     * Toggles between Sign In and Sign Up modes with animated transition.
+     * 
+     * Animation behavior:
+     * - Sign In → Sign Up: Overlay slides from right to left (650ms)
+     * - Sign Up → Sign In: Overlay slides from left to right (650ms)
+     * - Uses EASE_BOTH interpolator for smooth acceleration/deceleration
+     * - Prevents multiple simultaneous animations with isAnimating flag
+     * - Hides overlay text during transition, shows appropriate text on finish
+     * - Toggles form visibility to match the active mode
+     * 
+     * Visual states:
+     * - Sign In active: Overlay on right, shows Sign In form, "Hello Friend"
+     * overlay text
+     * - Sign Up active: Overlay on left, shows Sign Up form, "Welcome Back" overlay
+     * text
+     */
     private void toggleMode() {
         if (isAnimating) {
             return;
@@ -214,6 +302,19 @@ public class LoginPage {
         transition.play();
     }
 
+    /**
+     * Creates the Sign In form with email and password fields.
+     * 
+     * Form includes:
+     * - "Sign In" title
+     * - Social login icons (placeholder buttons)
+     * - Email and password input fields
+     * - "Forget Your Password?" label
+     * - Sign In button that triggers authentication
+     * - Enter key support for form submission
+     * 
+     * @return VBox containing the complete Sign In form
+     */
     private VBox createSignInForm() {
         VBox box = new VBox(20);
         box.setAlignment(Pos.CENTER);
@@ -250,6 +351,18 @@ public class LoginPage {
         return box;
     }
 
+    /**
+     * Creates the Sign Up form with name, email, and password fields.
+     * 
+     * Form includes:
+     * - "Create Account" title
+     * - Social login icons (placeholder buttons)
+     * - Name, email, and password input fields
+     * - Sign Up button that triggers registration
+     * - Enter key support for form submission
+     * 
+     * @return VBox containing the complete Sign Up form
+     */
     private VBox createSignUpForm() {
         VBox box = new VBox(20);
         box.setAlignment(Pos.CENTER);
@@ -287,6 +400,19 @@ public class LoginPage {
         return box;
     }
 
+    /**
+     * Creates overlay content panel for the sliding animation.
+     * 
+     * The overlay displays contextual messaging to encourage mode switching.
+     * Each overlay panel contains a title, description, and action button.
+     * 
+     * @param titleText Main heading text (e.g., "Welcome Back!")
+     * @param descText  Description text explaining what to do
+     * @param btnText   Button label (e.g., "SIGN IN", "SIGN UP")
+     * @param action    Runnable to execute when button is clicked (typically
+     *                  toggleMode)
+     * @return VBox containing the overlay content
+     */
     private VBox createOverlayContent(String titleText, String descText, String btnText, Runnable action) {
         VBox box = new VBox(20);
         box.setAlignment(Pos.CENTER);
@@ -309,6 +435,19 @@ public class LoginPage {
         return box;
     }
 
+    /**
+     * Creates a row of social login icon buttons.
+     * 
+     * Currently displays placeholder buttons for:
+     * - G+ (Google Plus)
+     * - f (Facebook)
+     * - In (Instagram)
+     * - Li (LinkedIn)
+     * 
+     * These are non-functional placeholders for future social login integration.
+     * 
+     * @return HBox containing social login icon buttons
+     */
     private HBox createSocialIcons() {
         HBox box = new HBox(15);
         box.setAlignment(Pos.CENTER);
@@ -322,6 +461,18 @@ public class LoginPage {
         return box;
     }
 
+    /**
+     * Handles user sign-in authentication.
+     * 
+     * Process:
+     * 1. Validates that email and password are not empty
+     * 2. Calls userService to validate credentials
+     * 3. If valid: sets current user in app and navigates to home page
+     * 4. If invalid: shows error alert
+     * 
+     * @param email    The user's email address
+     * @param password The user's password
+     */
     private void handleSignIn(String email, String password) {
         if (email.isEmpty() || password.isEmpty()) {
             showAlert("Error", "Please fill in all fields");
@@ -338,6 +489,20 @@ public class LoginPage {
         }
     }
 
+    /**
+     * Handles new user registration.
+     * 
+     * Process:
+     * 1. Validates that all fields (name, email, password) are filled
+     * 2. Checks if email is already registered
+     * 3. Creates new AppUser and saves to userService
+     * 4. Shows success message
+     * 5. Automatically toggles to Sign In mode for the user to log in
+     * 
+     * @param name     The user's display name
+     * @param email    The user's email address
+     * @param password The user's chosen password
+     */
     private void handleSignUp(String name, String email, String password) {
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             showAlert("Error", "Please fill in all fields");
@@ -362,6 +527,12 @@ public class LoginPage {
         toggleMode();
     }
 
+    /**
+     * Displays an informational alert dialog to the user.
+     * 
+     * @param title   The alert title
+     * @param content The alert message content
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
