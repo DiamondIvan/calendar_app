@@ -9,3 +9,4 @@ id,userId,title,description,startDateTime,endDateTime,category
 8,1,class,fop,2026-01-04T09:00,2026-01-04T10:00,PROFESSIONAL
 9,1,class,fop,2026-01-05T09:00,2026-01-05T10:00,PROFESSIONAL
 10,1,class,fop,2026-01-06T09:00,2026-01-06T10:00,PROFESSIONAL
+11,4,Thinking and communication skills exam,120 MCQ questions,2026-01-22T11:00,2026-01-22T14:00,EDUCATION
