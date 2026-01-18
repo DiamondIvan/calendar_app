@@ -287,7 +287,8 @@ public class AboutPage {
                 featGrid.add(createFeatureCard("7. Exit Application",
                                 "Safely exit the application. All data is automatically saved before closing."), 0, 3);
                 featGrid.add(createFeatureCard("8. Optional Features",
-                                "Enhanced functionality including reminders, conflict detection, and statistics."), 1,
+                                "Enhanced functionality including user registration and login, event statistics, and advanced search."),
+                                1,
                                 3);
 
                 gridContainer.getChildren().add(featGrid);
@@ -301,8 +302,6 @@ public class AboutPage {
 
                 Label marksTitle = new Label("MARKS DISTRIBUTION");
                 marksTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
-                Label marksSub = new Label("Breakdown of the 12 Marks Available");
-                marksSub.setStyle("-fx-text-fill: #666; -fx-font-size: 14px;");
 
                 HBox marksCards = new HBox(25);
                 marksCards.setAlignment(Pos.CENTER);
@@ -338,7 +337,7 @@ public class AboutPage {
                                 "#1cc88a");
 
                 marksCards.getChildren().addAll(basicCard, techCard, extraCard);
-                marksSection.getChildren().addAll(marksTitle, marksSub, marksCards);
+                marksSection.getChildren().addAll(marksTitle, marksCards);
 
                 // --- 8. CONTACT SECTION ---
                 VBox contactSection = new VBox(15);
